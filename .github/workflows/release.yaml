@@ -59,7 +59,7 @@ jobs:
     runs-on: ubuntu-24.04
     name: update base tag
     needs:
-      - do-matrix-action
+      - continuous-integration
     steps:
       - name: update base tag
         uses: exadrift/ci-agent-actions/changed-dirs@changed-dirs-v1
