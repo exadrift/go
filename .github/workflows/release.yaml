@@ -23,12 +23,12 @@ jobs:
 
   continuous-integration:
     name: ${{ matrix.item.name }} directory matrix actions
-    needs: create-change-matrix
+    needs: create-changed-directory-matrix
     runs-on: ubuntu-24.04
-    if: needs.create-change-matrix.outputs.directories != '[]'
+    if: needs.create-changed-directory-matrix.outputs.directories != '[]'
     strategy:
       matrix:
-        item: ${{ fromJson(needs.create-change-matrix.outputs.directories) }}
+        item: ${{ fromJson(needs.create-changed-directory-matrix.outputs.directories) }}
     defaults:
       run:
         working-directory: ${{ matrix.item.path }}
