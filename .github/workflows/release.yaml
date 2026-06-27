@@ -22,7 +22,7 @@ jobs:
         uses: exadrift/github-actions/changed-dirs@changed-dirs-v1
 
   continuous-integration:
-    name: ${{ matrix.item.name }} directory matrix actions
+    name: ${{ matrix.item.name }} - directory matrix actions
     needs: create-changed-directory-matrix
     runs-on: ubuntu-24.04
     if: needs.create-changed-directory-matrix.outputs.directories != '[]'
