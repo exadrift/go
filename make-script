@@ -12,5 +12,5 @@ if [ -f Makefile ]
 then
     make $1
 else
-    make -f ../Makefile
+    make -f ../Makefile $1
 fi
