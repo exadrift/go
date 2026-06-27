@@ -1,0 +1,16 @@
+#!/bin/sh
+
+if [ -z $1 ]
+then
+    echo "make-script <target>"
+    exit 1
+fi
+
+# attempt to build using an override makefile in the directory, otherwise
+# resort to the default makefile
+if [ -f Makefile ]
+then
+    make $1
+else
+    make -f ../Makefile
+fi
