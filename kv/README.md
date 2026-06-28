@@ -1,5 +1,5 @@
 # kv
-in-memory key value store for storing and accessing arbitrary data contexts
+in-memory key value store for storing and accessing arbitrary data
 
 kv only stores JSON/YAML primitive types, storing / retrieving objects such as structs is not directly support without (de)serialization.  kv does not include any (de)serializers and thus support must be provided externally.
 

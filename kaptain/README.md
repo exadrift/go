@@ -1,5 +1,5 @@
 # kaptain
-kaptain is a leader election helper which wraps and simplifies the leaderelection module provided by the kubernetes module.  a custom leader elector can also be used if desired, by implementing a new elector using the `ElectorInterface`.
+kaptain is a leader election helper which wraps and simplifies leaderelection provided by the kubernetes module.  a custom leader elector can also be used if desired, by implementing a new elector using the `ElectorInterface`.
 
 ## usage
 ```
