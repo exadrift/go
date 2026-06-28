@@ -36,23 +36,28 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
+
       - uses: exadrift/github-actions/is-default@is-default-v1
         id: is-default
+
       - uses: exadrift/github-actions/versioning@versioning-v1
         id: versioning
         with:
           # not covered by run.working-directory
           working-directory: ${{ matrix.item.path }}
-          tag-prefix: ${{ matrix.item.name }}-
+          tag-prefix: ${{ matrix.item.name }}/
+
       - name: perform lint check
         run: ../make-script lint-check
+
       - name: perform tests
         run: ../make-script test
+
       - if: ${{ steps.is-default.outputs.is-default == 'true' }}
         uses: exadrift/github-actions/release@release-v1
         with:
           working-directory: ${{ matrix.item.path }}
-          tags: ${{ matrix.item.name }}-${{ steps.versioning.outputs.version }},${{ matrix.item.name }}-${{ steps.versioning.outputs.version-major }}
+          tags: ${{ matrix.item.name }}/${{ steps.versioning.outputs.version }}
           description: release of ${{ matrix.item.name }} github action
 
   update-base-tag:
