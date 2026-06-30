@@ -40,7 +40,7 @@ jobs:
       - uses: exadrift/github-actions/is-default@is-default-v1
         id: is-default
 
-      - uses: exadrift/github-actions/versioning@versioning-v1
+      - uses: exadrift/github-actions/versioningnotify_file_not_exist
         id: versioning
         with:
           # not covered by run.working-directory
