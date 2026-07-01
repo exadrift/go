@@ -64,7 +64,7 @@ jobs:
     runs-on: ubuntu-24.04
     name: update base tag
     needs:
-      - do-matrix-action
+      - create-changed-directory-matrix
     steps:
       - uses: exadrift/github-actions/is-default@is-default-v1
         id: is-default    
