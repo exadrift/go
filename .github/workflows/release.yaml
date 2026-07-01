@@ -64,9 +64,12 @@ jobs:
     runs-on: ubuntu-24.04
     name: update base tag
     needs:
-      - continuous-integration
+      - do-matrix-action
     steps:
+      - uses: exadrift/github-actions/is-default@is-default-v1
+        id: is-default    
       - name: update base tag
+        if: ${{ steps.is-default.outputs.is-default == 'true' }}
         uses: exadrift/github-actions/changed-dirs@changed-dirs-v1
         with:
           update-base-tag: true
