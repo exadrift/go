@@ -66,6 +66,9 @@ jobs:
     needs:
       - create-changed-directory-matrix
     steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0    
       - uses: exadrift/github-actions/is-default@is-default-v1
         id: is-default    
       - name: update base tag
