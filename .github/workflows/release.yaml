@@ -40,7 +40,7 @@ jobs:
       - uses: exadrift/github-actions/is-default@is-default-v1
         id: is-default
 
-      - uses: exadrift/github-actions/versioning@versioning-v1
+      - uses: exadrift/github-actions/versioning@notify_file_not_exist
         id: versioning
         with:
           # not covered by run.working-directory
@@ -66,7 +66,7 @@ jobs:
     needs:
       - continuous-integration
     steps:
-      - name: update base tag
+      - name: update base tag when on default branch
         uses: exadrift/github-actions/changed-dirs@changed-dirs-v1
         with:
           update-base-tag: true
