@@ -1,0 +1,82 @@
+package main
+
+import (
+	"log"
+
+	"github.com/exadrift/go/tui"
+)
+
+var fruits = map[string][]string{
+	"apple": {
+		"delicious",
+		"macintosh",
+		"fuji",
+		"gala",
+		"honeycrisp",
+	},
+	"orange": {
+		"navel",
+		"valencia",
+		"blood",
+		"cara cara",
+		"clementine",
+	},
+	"strawberry": {
+		"albion",
+		"jewel",
+		"mara des bois",
+		"allstar",
+		"honeoye",
+	},
+	"watermelon": {
+		"crimson sweet",
+		"sugar baby",
+		"moon and stars",
+		"orangelo",
+		"yellow baby",
+		"black beauty",
+		"8424",
+	},
+}
+
+func getFruits() []string {
+	var fs []string
+	for f := range fruits {
+		fs = append(fs, f)
+	}
+
+	return fs
+}
+
+func getFruitType(fruit string) []string {
+	return fruits[fruit]
+}
+
+func main() {
+	menu1 := tui.NewMenu(getFruits()...)
+	menu1.EnableBorder(true)
+
+	menu2 := tui.NewMenu(getFruitType("apple")...)
+	menu2.EnableBorder(true)
+
+	textBox3 := tui.NewText("this is box 3")
+	textBox3.EnableBorder(true)
+
+	layout := tui.NewFlexLayout(
+		tui.OrientationHorizontal,
+		tui.NewSegment(1, menu1),
+		tui.NewSegment(1, menu2),
+		tui.NewSegment(1, textBox3),
+	)
+
+	app := tui.New(layout).SetFocus(menu1)
+
+	menu1.SetSelectHandler(func(selectedIndex int, selectedItem string) {
+		menu2.SetContents(getFruitType(selectedItem)...)
+		app.SetFocus(menu2)
+	})
+
+	if err := app.Start(); err != nil {
+		log.Fatal(err)
+	}
+}
