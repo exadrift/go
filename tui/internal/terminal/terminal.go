@@ -39,3 +39,7 @@ func HideCursor() {
 func ShowCursor() {
 	fmt.Print("\x1b[?25h")
 }
+
+func Clear() {
+	fmt.Print("\033[H\033[2J")
+}

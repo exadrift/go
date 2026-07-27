@@ -84,12 +84,6 @@ func (f *FlexLayout) GetChildren() []Widget {
 	return f.children
 }
 
-func (f *FlexLayout) Render(mode RenderMode, inFocus Widget) {
-	for _, child := range f.children {
-		child.Render(mode, inFocus)
-	}
-}
-
 func (f *FlexLayout) SetDimensions(left int, top int, width int, height int) {
 	f.Box.SetDimensions(left, top, width, height)
 	childLeft := left

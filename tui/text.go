@@ -1,10 +1,15 @@
 package tui
 
-import "github.com/exadrift/go/tui/internal/terminal"
+import (
+	"fmt"
+
+	"github.com/exadrift/go/tui/internal/terminal"
+)
 
 type Text struct {
 	*Box
-	Contents string
+	Contents       string
+	scrollPosition int
 }
 
 func NewText(contents string) *Text {
@@ -18,5 +23,16 @@ func (t *Text) Render(mode RenderMode, focusItem Widget) {
 	t.Box.Render(mode, focusItem)
 
 	dimensions := t.GetContentDimensions()
-	terminal.SetCursorPos(dimensions.Left, dimensions.Top)
+
+	lines := WrapTextBasic(t.Contents, dimensions.Width)
+	curRow := 0
+	for i := t.scrollPosition; i < len(lines); i++ {
+		if curRow >= dimensions.Height {
+			break
+		}
+		terminal.SetCursorPos(dimensions.Left, dimensions.Top+curRow)
+		fmt.Print(lines[i])
+
+		curRow++
+	}
 }

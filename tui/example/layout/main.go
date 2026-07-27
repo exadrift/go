@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os/exec"
 
 	"github.com/exadrift/go/tui"
 )
@@ -54,22 +55,34 @@ func getFruitType(fruit string) []string {
 
 func main() {
 	menu1 := tui.NewMenu(getFruits()...)
-	menu1.EnableBorder(true)
+	menu1.EnableBorder(true).SetTitle("fruit")
 
 	menu2 := tui.NewMenu(getFruitType("apple")...)
-	menu2.EnableBorder(true)
+	menu2.EnableBorder(true).SetTitle("type")
 
-	textBox3 := tui.NewText("this is box 3")
-	textBox3.EnableBorder(true)
+	shell := tui.NewShell()
+	shell.EnableBorder(true).SetTitle("terminal")
+
+	textbox := tui.NewText("hello world, this is some text that's likely to need to wrap all through the box.")
+	textbox.EnableBorder(true).SetTitle("text")
 
 	layout := tui.NewFlexLayout(
 		tui.OrientationHorizontal,
 		tui.NewSegment(1, menu1),
-		tui.NewSegment(1, menu2),
-		tui.NewSegment(1, textBox3),
+		tui.NewSegment(1, tui.NewFlexLayout(
+			tui.OrientationVertical,
+			tui.NewSegment(1, menu2),
+			tui.NewSegment(1, textbox),
+		)),
+		tui.NewSegment(3, shell),
 	)
 
 	app := tui.New(layout).SetFocus(menu1)
+
+	c := exec.Command("/bin/bash")
+	if err := shell.Start(app, c); err != nil {
+		log.Fatal(err)
+	}
 
 	menu1.SetSelectHandler(func(selectedIndex int, selectedItem string) {
 		menu2.SetContents(getFruitType(selectedItem)...)

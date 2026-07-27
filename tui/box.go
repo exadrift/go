@@ -102,7 +102,7 @@ func (b *Box) Render(mode RenderMode, focusItem Widget) {
 				bottomRight string
 			)
 
-			if b == focusItem.GetBox() {
+			if focusItem != nil && b == focusItem.GetBox() {
 				topLeft = BorderDoubleTopLeftCorner
 				horiz = BorderDoubleHoriz
 				topRight = BorderDoubleTopRightCorner
@@ -138,12 +138,20 @@ func (b *Box) Render(mode RenderMode, focusItem Widget) {
 
 				fmt.Print(vert)
 			}
-			terminal.SetCursorPos(b.dimensions.Left, b.dimensions.Top+b.dimensions.Height)
+			terminal.SetCursorPos(b.dimensions.Left, b.dimensions.Top+b.dimensions.Height-1)
 			fmt.Print(bottomLeft)
 			for i := 1; i < b.dimensions.Width-1; i++ {
 				fmt.Print(horiz)
 			}
 			fmt.Print(bottomRight)
+
+			if b.title != "" {
+				terminal.SetCursorPos(b.dimensions.Left+2, b.dimensions.Top)
+				avail := b.dimensions.Width - 4
+				if avail > 2 {
+					fmt.Print(Constrain(b.title, avail))
+				}
+			}
 		}
 	}
 }
@@ -156,42 +164,19 @@ func (b *Box) CaptureInput(r string) string {
 	return r
 }
 
-func (b *Box) FindInFocus(me Widget, prevInFocus Widget, inFocus Widget, focus *Focus) *Focus {
-	if focus == nil {
-		focus = &Focus{}
-	}
+func (b *Box) SetTitle(title string) *Box {
+	b.title = title
+	return b
+}
 
+func (b *Box) GetFocalWidgets(me Widget, focalWidgets *FocalWidgets) {
 	if me.CanHaveFocus() {
-		if focus.Me != nil && focus.Next == nil {
-			// if prev was set but next wasn't set yet, this will be the first true candidate
-			// for next
-			focus.Next = me
-		}
-
-		if focus.First == nil {
-			focus.First = me
-		}
-
-		// last is always being updated
-		focus.Last = me
-
-		// we found the item in focus, but we have to traverse the entire application in order
-		// to support focus wrapping, etc.
-		if me == inFocus {
-			focus.Me = me
-			focus.Prev = prevInFocus
-		}
+		focalWidgets.Widgets = append(focalWidgets.Widgets, me)
 	}
 
-	// we use "me", to ensure that the child "class" receives the call, not the box parent, unless
-	// nothing has been overridden
-	children := me.GetChildren()
-	for _, child := range children {
-		child.FindInFocus(child, prevInFocus, inFocus, focus)
-		prevInFocus = child
+	for _, child := range me.GetChildren() {
+		child.GetFocalWidgets(child, focalWidgets)
 	}
-
-	return focus
 }
 
 func (b *Box) NextInFocus(inFocus Widget) Widget {
@@ -200,4 +185,17 @@ func (b *Box) NextInFocus(inFocus Widget) Widget {
 
 func (b *Box) CanHaveFocus() bool {
 	return true
+}
+
+func (b *Box) AbsorbsInput(input string) bool {
+	return false
+}
+
+func (b *Box) Collect(me Widget) []Widget {
+	widgets := []Widget{me}
+	for _, child := range me.GetChildren() {
+		widgets = append(widgets, child.Collect(child)...)
+	}
+
+	return widgets
 }

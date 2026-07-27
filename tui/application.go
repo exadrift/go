@@ -12,6 +12,8 @@ import (
 )
 
 type Application struct {
+	errorCond    error
+	redrawChan   chan Widget
 	inputHandler func(string) string
 	inFocus      Widget
 	ctrlCExit    bool
@@ -60,10 +62,11 @@ func New(root Widget, options ...Option) *Application {
 	var exitSignals []os.Signal
 
 	app := &Application{
-		wg:        &sync.WaitGroup{},
-		root:      root,
-		sigChan:   make(chan os.Signal, 1),
-		closeChan: make(chan struct{}, 1),
+		wg:         &sync.WaitGroup{},
+		root:       root,
+		sigChan:    make(chan os.Signal, 1),
+		closeChan:  make(chan struct{}, 1),
+		redrawChan: make(chan Widget, 1000),
 	}
 
 	for _, option := range options {
@@ -92,9 +95,13 @@ func New(root Widget, options ...Option) *Application {
 	return app
 }
 
-func (a *Application) Exit() {
+func (a *Application) Exit(err error) {
 	a.closeLock.Lock()
 	defer a.closeLock.Unlock()
+
+	if err != nil {
+		a.errorCond = err
+	}
 
 	select {
 	case _, ok := <-a.closeChan:
@@ -118,45 +125,77 @@ func (a *Application) SetFocus(obj Widget) *Application {
 	return a
 }
 
-func (a *Application) findFocusNext() Widget {
-	focus := a.root.FindInFocus(a.root, nil, a.inFocus, nil)
-	if focus.Next != nil {
-		return focus.Next
-	}
+func (a *Application) GetFocalWidgets() []Widget {
+	focalWidgets := &FocalWidgets{}
+	a.root.GetFocalWidgets(a.root, focalWidgets)
+	return focalWidgets.Widgets
+}
 
-	return focus.First
+func (a *Application) findFocusNext() Widget {
+	focalWidgets := a.GetFocalWidgets()
+	for i, widget := range focalWidgets {
+		if widget == a.inFocus {
+			if i < len(focalWidgets)-1 {
+				return focalWidgets[i+1]
+			}
+
+			break
+		}
+	}
+	return focalWidgets[0]
 }
 
 func (a *Application) findFocusPrev() Widget {
-	focus := a.root.FindInFocus(a.root, nil, a.inFocus, nil)
-	if focus.Prev != nil {
-		return focus.Prev
-	}
+	focalWidgets := a.GetFocalWidgets()
+	for i, widget := range focalWidgets {
+		if widget == a.inFocus {
+			if i > 0 {
+				return focalWidgets[i-1]
+			}
 
-	return focus.Last
+			break
+		}
+	}
+	return focalWidgets[len(focalWidgets)-1]
 }
 
 // handleInput directs input to the widget with focus
 func (a *Application) handleInput(input string) string {
+	if a.inFocus == nil {
+		return input
+	}
 	return a.inFocus.CaptureInput(input)
 }
 
 func (a *Application) renderAll() {
-	terminal.HideCursor()
-	a.root.Render(RenderModeAll, a.inFocus)
-	terminal.ShowCursor()
+	a.renderWidgets(RenderModeAll, a.root.Collect(a.root)...)
 }
 
 func (a *Application) renderAllRefocus() {
-	terminal.HideCursor()
-	a.root.Render(RenderModeBorder, a.inFocus)
-	terminal.ShowCursor()
+	a.renderWidgets(RenderModeBorder, a.root.Collect(a.root)...)
 }
 
 func (a *Application) renderFocused() {
+	a.renderWidgets(RenderModeContent, a.inFocus)
+}
+
+func (a *Application) RequestRedrawComponent(component Widget) {
+	a.redrawChan <- component
+}
+
+func (a *Application) renderWidgets(renderMode RenderMode, widgets ...Widget) {
 	terminal.HideCursor()
-	a.inFocus.Render(RenderModeContent, a.inFocus)
-	terminal.ShowCursor()
+	for _, w := range widgets {
+		if w == a.inFocus {
+			continue
+		}
+
+		w.Render(renderMode, a.inFocus)
+	}
+
+	if a.inFocus != nil {
+		a.inFocus.Render(renderMode, a.inFocus)
+	}
 }
 
 // Start starts the application loop
@@ -165,7 +204,7 @@ func (a *Application) Start() error {
 
 	// this exit will signal prior to the waitgroup wait function, allowing any blocking threads
 	// an opportunity to gracefully exit
-	defer a.Exit()
+	defer a.Exit(nil)
 	// main application loop
 
 	termFd, restore, err := terminal.Start()
@@ -174,6 +213,7 @@ func (a *Application) Start() error {
 	}
 	a.termFd = termFd
 	defer restore()
+	defer terminal.Clear()
 
 	if a.onExit != nil {
 		defer a.onExit()
@@ -207,7 +247,7 @@ func (a *Application) Start() error {
 		return err
 	}
 	a.root.SetDimensions(0, 0, width, height)
-	a.root.Render(RenderModeAll, a.inFocus)
+	a.renderAll()
 
 	// application event loop
 	for {
@@ -217,7 +257,7 @@ func (a *Application) Start() error {
 			return nil
 		case <-a.closeChan:
 			// application is being closed internally
-			return nil
+			return a.errorCond
 		case <-termSizeChan:
 			// resize event occurred
 			width, height, err := term.GetSize(a.termFd)
@@ -226,12 +266,10 @@ func (a *Application) Start() error {
 			}
 			a.root.SetDimensions(0, 0, width, height)
 			a.renderAll()
+		case widget := <-a.redrawChan:
+			widget.Render(RenderModeContent, a.inFocus)
 		case c := <-inputChan:
 			switch c {
-			case CtrlC:
-				if a.ctrlCExit {
-					return nil
-				}
 			case Tab:
 				if a.inFocus != nil {
 					a.SetFocus(a.findFocusNext())
@@ -243,6 +281,13 @@ func (a *Application) Start() error {
 					a.renderAllRefocus()
 				}
 			default:
+				// this is to allow sending control+c to the shell
+				if c == CtrlC && a.ctrlCExit {
+					if a.inFocus == nil || !a.inFocus.AbsorbsInput(CtrlC) {
+						return nil
+					}
+				}
+
 				if a.inputHandler != nil {
 					c = a.inputHandler(c)
 					if c == RenderFullCode {

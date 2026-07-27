@@ -13,19 +13,17 @@ type Widget interface {
 	GetChildren() []Widget
 	GetDimensions() *Dimensions
 	Render(mode RenderMode, inFocus Widget)
+	Collect(me Widget) []Widget
 	SetDimensions(left int, top int, width int, height int)
 	GetBox() *Box
 	CaptureInput(r string) string
-	FindInFocus(me Widget, prevInFocus Widget, inFocus Widget, focus *Focus) *Focus
+	GetFocalWidgets(me Widget, focalWidgets *FocalWidgets)
 	CanHaveFocus() bool
+	AbsorbsInput(input string) bool
 }
 
-type Focus struct {
-	First Widget
-	Next  Widget
-	Me    Widget
-	Prev  Widget
-	Last  Widget
+type FocalWidgets struct {
+	Widgets []Widget
 }
 
 type OptionType int
@@ -52,15 +50,13 @@ func Constrain(value string, length int) string {
 	}
 
 	newValue := []rune(value[:length])
-	pos := len(newValue) - 1
-	last := pos - 3
-	if last < 0 {
-		last = 0
+	last := len(newValue) - 1
+	first := last - 1
+	if first < 0 {
+		first = 0
 	}
-	for i := pos; i >= last; i-- {
-		if pos >= 0 {
-			newValue[pos] = '.'
-		}
+	for i := first; i <= last; i++ {
+		newValue[i] = '.'
 	}
 
 	return string(newValue)
