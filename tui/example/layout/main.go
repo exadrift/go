@@ -14,6 +14,13 @@ var fruits = map[string][]string{
 		"fuji",
 		"gala",
 		"honeycrisp",
+		"pink lady",
+		"cosmic crisp",
+		"mila zagoras piliou",
+		"cripps pink",
+		"maçã bravo de esmolfe",
+		"ambrosia",
+		"firiki piliou",
 	},
 	"orange": {
 		"navel",
