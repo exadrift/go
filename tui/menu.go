@@ -34,6 +34,7 @@ func (m *Menu) SetContents(contents ...string) *Menu {
 	m.contents = make([]string, len(contents))
 	m.index = make(map[string]int, len(contents))
 	m.selectedIndex = 0
+	m.scrollPosition = 0
 	for i, item := range contents {
 		// sorry, menus shouldn't have any ANSI codes in them
 		m.contents[i] = StripAnsiCodes(item)
