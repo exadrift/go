@@ -34,6 +34,7 @@ func (m *Menu) SetContents(contents ...string) *Menu {
 	m.contents = make([]string, len(contents))
 	m.index = make(map[string]int, len(contents))
 	m.selectedIndex = 0
+	m.scrollPosition = 0
 	for i, item := range contents {
 		// sorry, menus shouldn't have any ANSI codes in them
 		m.contents[i] = StripAnsiCodes(item)
@@ -46,7 +47,19 @@ func (m *Menu) SetContents(contents ...string) *Menu {
 }
 
 func (m *Menu) SetSelectedIndex(index int) *Menu {
+	if index < 0 {
+		index = len(m.contents) - 1
+	} else if index > len(m.contents)-1 {
+		index = 0
+	}
 	m.selectedIndex = index
+
+	contentDims := m.GetContentDimensions()
+	if m.selectedIndex > contentDims.Height-1+m.scrollPosition {
+		m.scrollPosition = m.selectedIndex - (contentDims.Height - 1)
+	} else if m.selectedIndex < m.scrollPosition {
+		m.scrollPosition = m.selectedIndex
+	}
 
 	return m
 }
@@ -82,15 +95,9 @@ func (m *Menu) Render(mode RenderMode, focusItem Widget) {
 func (m *Menu) CaptureInput(r string) string {
 	switch r {
 	case UpArrow:
-		m.selectedIndex--
-		if m.selectedIndex < 0 {
-			m.selectedIndex = len(m.contents) - 1
-		}
+		m.SetSelectedIndex(m.selectedIndex - 1)
 	case DownArrow:
-		m.selectedIndex++
-		if m.selectedIndex >= len(m.contents) {
-			m.selectedIndex = 0
-		}
+		m.SetSelectedIndex(m.selectedIndex + 1)
 	case Enter:
 		if m.selectHandler != nil {
 			m.selectHandler(m.selectedIndex, m.contents[m.selectedIndex])
