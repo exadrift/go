@@ -93,7 +93,7 @@ func (s *Shell) Render(mode RenderMode, focusItem Widget) {
 }
 
 func (s *Shell) CaptureInput(r string) string {
-	s.ptyFile.Write([]byte(r))
+	_, _ = s.ptyFile.Write([]byte(r))
 	return ""
 }
 

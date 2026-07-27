@@ -51,7 +51,6 @@ func NewSegment(portion int, child Widget, options ...*Option) *Segment {
 type FlexLayout struct {
 	*Box
 	children    []Widget
-	dimensions  Dimensions
 	orientation Orientation
 	segments    []*Segment
 	size        int

@@ -39,9 +39,9 @@ const (
 )
 
 type Box struct {
-	hasBorder         bool
-	title             string
-	alignment         Alignment
+	hasBorder bool
+	title     string
+	// alignment         Alignment
 	dimensions        Dimensions
 	contentDimensions Dimensions
 }
