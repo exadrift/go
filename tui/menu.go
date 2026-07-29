@@ -1,24 +1,23 @@
 package tui
 
-import (
-	"fmt"
-
-	"github.com/exadrift/go/tui/internal/terminal"
-)
+import "fmt"
 
 type Menu struct {
 	*Box
-	contents       []string
-	index          map[string]int
-	selectedIndex  int
-	scrollPosition int
-	selectHandler  func(int, string)
+	contents         []string
+	index            map[string]int
+	selectedIndex    int
+	selectHandler    func(int, string)
+	nonSelectedStyle string
+	selectedStyle    string
 }
 
 func NewMenu(contents ...string) *Menu {
 	menu := &Menu{
 		Box: NewBox(),
 	}
+
+	menu.selectedStyle = StyleFgBg(White, Blue)
 
 	menu.SetContents(contents...)
 
@@ -30,11 +29,19 @@ func (m *Menu) SetSelectHandler(h func(selectedIndex int, selectedItem string)) 
 	return m
 }
 
+func (m *Menu) SetStyle(selected string, nonSelected string) *Menu {
+	m.selectedStyle = selected
+	m.nonSelectedStyle = nonSelected
+	return m
+}
+
 func (m *Menu) SetContents(contents ...string) *Menu {
 	m.contents = make([]string, len(contents))
 	m.index = make(map[string]int, len(contents))
 	m.selectedIndex = 0
-	m.scrollPosition = 0
+
+	m.ResetScrollPosition()
+
 	for i, item := range contents {
 		// sorry, menus shouldn't have any ANSI codes in them
 		m.contents[i] = StripAnsiCodes(item)
@@ -54,13 +61,6 @@ func (m *Menu) SetSelectedIndex(index int) *Menu {
 	}
 	m.selectedIndex = index
 
-	contentDims := m.GetContentDimensions()
-	if m.selectedIndex > contentDims.Height-1+m.scrollPosition {
-		m.scrollPosition = m.selectedIndex - (contentDims.Height - 1)
-	} else if m.selectedIndex < m.scrollPosition {
-		m.scrollPosition = m.selectedIndex
-	}
-
 	return m
 }
 
@@ -72,24 +72,15 @@ func (m *Menu) SetSelectedItem(item string) *Menu {
 }
 
 func (m *Menu) Render(mode RenderMode, focusItem Widget) {
-	m.Box.Render(mode, focusItem)
-
-	dimensions := m.GetContentDimensions()
-	curRow := 0
-	for i := m.scrollPosition; i < len(m.contents); i++ {
-		if curRow >= dimensions.Height {
-			break
+	m.Box.RenderWithScroll(mode, focusItem, len(m.contents), m.selectedIndex, func(index int) string {
+		menuLabel := Pad(Constrain(m.contents[index], m.Box.contentDimensions.Width), m.Box.contentDimensions.Width)
+		switch index {
+		case m.selectedIndex:
+			return fmt.Sprintf("%s%s%s", m.selectedStyle, menuLabel, StyleReset)
+		default:
+			return fmt.Sprintf("%s%s%s", m.nonSelectedStyle, menuLabel, StyleReset)
 		}
-		terminal.SetCursorPos(dimensions.Left, dimensions.Top+curRow)
-		menuLabel := Pad(Constrain(m.contents[i], dimensions.Width), dimensions.Width)
-		if i == m.selectedIndex {
-			fmt.Print(StyleFgBg(White, Blue, menuLabel))
-		} else {
-			fmt.Print(StyleFg(White, menuLabel))
-		}
-
-		curRow++
-	}
+	})
 }
 
 func (m *Menu) CaptureInput(r string) string {
