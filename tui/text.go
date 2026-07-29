@@ -2,9 +2,7 @@ package tui
 
 type Text struct {
 	*Box
-	Contents       string
-	scrollPosition int
-	scrollable     bool
+	Contents string
 }
 
 func NewText(contents string) *Text {
@@ -31,7 +29,7 @@ func (t *Text) Render(mode RenderMode, focusItem Widget) {
 	dimensions := t.GetContentDimensions()
 	lines := WrapTextBasic(t.Contents, dimensions.Width)
 
-	t.Box.RenderWithScroll(mode, focusItem, len(lines), -1, func(index int) string {
+	t.RenderWithScroll(mode, focusItem, len(lines), -1, func(index int) string {
 		return Pad(lines[index], dimensions.Width)
 	})
 }

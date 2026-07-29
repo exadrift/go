@@ -29,6 +29,8 @@ func (m *Menu) SetSelectHandler(h func(selectedIndex int, selectedItem string)) 
 	return m
 }
 
+// SetStyle sets independent styles for the selected and non-selected states.  Each style is expected to be
+// represented as an ANSI escape sequence.  An empty string indicates no applied style.
 func (m *Menu) SetStyle(selected string, nonSelected string) *Menu {
 	m.selectedStyle = selected
 	m.nonSelectedStyle = nonSelected
@@ -72,8 +74,8 @@ func (m *Menu) SetSelectedItem(item string) *Menu {
 }
 
 func (m *Menu) Render(mode RenderMode, focusItem Widget) {
-	m.Box.RenderWithScroll(mode, focusItem, len(m.contents), m.selectedIndex, func(index int) string {
-		menuLabel := Pad(Constrain(m.contents[index], m.Box.contentDimensions.Width), m.Box.contentDimensions.Width)
+	m.RenderWithScroll(mode, focusItem, len(m.contents), m.selectedIndex, func(index int) string {
+		menuLabel := Pad(Constrain(m.contents[index], m.contentDimensions.Width), m.contentDimensions.Width)
 		switch index {
 		case m.selectedIndex:
 			return fmt.Sprintf("%s%s%s", m.selectedStyle, menuLabel, StyleReset)
