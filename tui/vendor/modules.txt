@@ -4,8 +4,11 @@ github.com/creack/pty
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
-# github.com/exadrift/vt10x v0.0.3
-## explicit; go 1.26
+# github.com/exadrift/go/ringbuf v0.0.1
+## explicit; go 1.26.4
+github.com/exadrift/go/ringbuf
+# github.com/exadrift/vt10x v0.0.4
+## explicit; go 1.26.4
 github.com/exadrift/vt10x
 # github.com/pmezard/go-difflib v1.0.0
 ## explicit

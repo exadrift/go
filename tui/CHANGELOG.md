@@ -1,3 +1,5 @@
+# v0.0.4
+- added scroll handle rendering
 # v0.0.3
 - better integration for scroll support across components
 # v0.0.2
