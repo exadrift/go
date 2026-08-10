@@ -1,3 +1,11 @@
+# v0.0.8
+- fixed color reset
+# v0.0.7
+- fixed scrollback logic, added tests
+# v0.0.6
+- support RGB color
+# v0.0.5
+- added general usage instructions to the README.md
 # v0.0.4
 - add scrollback and history buffer render method
 # v0.0.3
