@@ -10,8 +10,8 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/exadrift/go/ringbuf v0.0.1 h1:8XL/++4CuR4/nakry0hiN2H6RVW6NN5fiEl6NPrbrXE=
 github.com/exadrift/go/ringbuf v0.0.1/go.mod h1:NrzM7Kipwul9lUtUn/5s0pJl3rWPFuhxCLaZo+mDrW4=
-github.com/exadrift/vt10x v0.0.8 h1:IHowngKK8LCKWgvFUi1iqUDWvo+ZgUCxCTtOGquSbVI=
-github.com/exadrift/vt10x v0.0.8/go.mod h1:r9lNUHK/LKx5toRPVCJYbNsW5jf/Hjfyedvsu09k0BE=
+github.com/exadrift/vt10x v0.0.9 h1:3luciH1EWAojS4lH2b388fij68YUF4KaKL6FDMmTRaY=
+github.com/exadrift/vt10x v0.0.9/go.mod h1:r9lNUHK/LKx5toRPVCJYbNsW5jf/Hjfyedvsu09k0BE=
 github.com/mattn/go-isatty v0.0.14 h1:yVuAays6BHfxijgZPzw+3Zlu5yQgKGP2/hcQbHb7S9Y=
 github.com/mattn/go-isatty v0.0.14/go.mod h1:7GGIvUiUoEMVVmxf/4nioHXj79iQHKdU27kJ6hsGG94=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=

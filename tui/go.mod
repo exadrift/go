@@ -4,7 +4,7 @@ go 1.26.4
 
 require (
 	github.com/creack/pty v1.1.24
-	github.com/exadrift/vt10x v0.0.8
+	github.com/exadrift/vt10x v0.0.9
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/term v0.45.0
 )
