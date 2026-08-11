@@ -86,6 +86,7 @@ func New(root Widget, options ...Option) *Application {
 		closeChan:  make(chan struct{}, 1),
 		redrawChan: make(chan Widget, 1000),
 	}
+	appSingleton = app
 
 	for _, option := range options {
 		switch option.optionType {
@@ -267,11 +268,17 @@ func (a *Application) Start() error {
 	termSizeChan := make(chan os.Signal, 100)
 	signal.Notify(termSizeChan, syscall.SIGWINCH)
 
+	terminal.SetAlternateScreen()
+	terminal.Clear()
+
+	defer terminal.SetOriginalScreen()
+
 	width, height, err := term.GetSize(a.termFd)
 	if err != nil {
 		return err
 	}
 	a.root.SetDimensions(0, 0, width, height)
+
 	a.renderAll()
 
 	// application event loop
