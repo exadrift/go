@@ -93,12 +93,12 @@ func main() {
 	}
 
 	menu1.SetSelectHandler(func(selectedIndex int, selectedItem string) {
-		app.SetBusy(true, "Busy")
+		app.ShowLoader("Busy")
 		go func() {
 			time.Sleep(time.Second * 4)
 			menu2.SetContents(getFruitType(selectedItem)...)
 			app.SetFocus(menu2)
-			app.SetBusy(false)
+			app.HideLoader()
 		}()
 	})
 

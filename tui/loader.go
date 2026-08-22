@@ -3,20 +3,25 @@ package tui
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/exadrift/go/tui/internal/terminal"
 )
 
+var LoaderImages = []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}
+
 type Loader struct {
 	*Box
-	Label string
-	lock  sync.Mutex
+	Label       string
+	lock        sync.Mutex
+	isBusyChan  chan struct{}
+	application *Application
 }
 
-func NewLoader(label string) *Loader {
+func NewLoader(a *Application) *Loader {
 	return &Loader{
-		Box:   NewBox(),
-		Label: label,
+		Box:         NewBox(),
+		application: a,
 	}
 }
 
@@ -30,19 +35,22 @@ func (l *Loader) Render(mode RenderMode, focusItem Widget) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 
-	width := l.GetWidth()
+	width := len(l.Label) + 4
+	height := 7
 
-	dimensions := l.GetDimensions()
-	curY := dimensions.Top
+	left := int((float64(l.dimensions.Width) / 2.) - (float64(width) / 2.))
+	top := int((float64(l.dimensions.Height) / 2.) - (float64(height) / 2.))
 
-	terminal.SetCursorPos(dimensions.Left, curY)
+	curY := top
+
+	terminal.SetCursorPos(left, curY)
 	fmt.Print(StyleReset)
 	for i := 0; i < width; i++ {
 		fmt.Print(" ")
 	}
 	curY++
 
-	terminal.SetCursorPos(dimensions.Left, curY)
+	terminal.SetCursorPos(left, curY)
 	fmt.Print(StyleReset)
 	fmt.Print(" ")
 	fmt.Print(StyleFg(Blue))
@@ -53,7 +61,7 @@ func (l *Loader) Render(mode RenderMode, focusItem Widget) {
 	fmt.Print(" ")
 	curY++
 
-	terminal.SetCursorPos(dimensions.Left, curY)
+	terminal.SetCursorPos(left, curY)
 	fmt.Print(StyleReset)
 	fmt.Print(" ")
 	fmt.Print(StyleFg(Blue))
@@ -68,7 +76,7 @@ func (l *Loader) Render(mode RenderMode, focusItem Widget) {
 	fmt.Print(" ")
 	curY++
 
-	terminal.SetCursorPos(dimensions.Left, curY)
+	terminal.SetCursorPos(left, curY)
 	fmt.Print(StyleReset)
 	fmt.Print(" ")
 	fmt.Print(StyleFg(Blue))
@@ -81,7 +89,7 @@ func (l *Loader) Render(mode RenderMode, focusItem Widget) {
 	fmt.Print(" ")
 	curY++
 
-	terminal.SetCursorPos(dimensions.Left, curY)
+	terminal.SetCursorPos(left, curY)
 	fmt.Print(StyleReset)
 	fmt.Print(" ")
 	fmt.Print(StyleFg(Blue))
@@ -96,7 +104,7 @@ func (l *Loader) Render(mode RenderMode, focusItem Widget) {
 	fmt.Print(" ")
 	curY++
 
-	terminal.SetCursorPos(dimensions.Left, curY)
+	terminal.SetCursorPos(left, curY)
 	fmt.Print(StyleReset)
 	fmt.Print(" ")
 	fmt.Print(StyleFg(Blue))
@@ -107,18 +115,49 @@ func (l *Loader) Render(mode RenderMode, focusItem Widget) {
 	fmt.Print(" ")
 	curY++
 
-	terminal.SetCursorPos(dimensions.Left, curY)
+	terminal.SetCursorPos(left, curY)
 	fmt.Print(StyleReset)
 	for i := 0; i < width; i++ {
 		fmt.Print(" ")
 	}
-	curY++
 }
 
-func (l *Loader) GetWidth() int {
-	return len(l.Label) + 4
+// SetBusy sets the busy status on the application component.  If becoming busy, a thread will be started with a UI
+// timer to set render events, if becoming not busy, the timer will stop
+func (l *Loader) Show(label string) {
+	l.isBusyChan = make(chan struct{}, 1)
+	a := l.application
+	a.loader.Label = label
+
+	// Start the load timer thread
+	go func() {
+		loaderFrame := 0
+		ticker := time.NewTicker(LoaderTickInterval)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-l.isBusyChan:
+				a.RequestRedrawComponent(RedrawRequest{
+					Widget:     nil,
+					RenderMode: RenderModeAll,
+				})
+				return
+			case <-ticker.C:
+				// update the label and send a redraw request
+				a.loader.SetLabel(fmt.Sprintf("%s %s", LoaderImages[loaderFrame], label))
+				a.RequestRedrawComponent(RedrawRequest{
+					Widget:     a.loader,
+					RenderMode: RenderModeAll,
+				})
+				loaderFrame++
+				if loaderFrame >= len(LoaderImages) {
+					loaderFrame = 0
+				}
+			}
+		}
+	}()
 }
 
-func (l *Loader) GetHeight() int {
-	return 7
+func (l *Loader) Hide() {
+	close(l.isBusyChan)
 }

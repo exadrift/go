@@ -1,7 +1,6 @@
 package tui
 
 import (
-	"fmt"
 	"os"
 	"os/signal"
 	"slices"
@@ -23,8 +22,6 @@ type RedrawRequest struct {
 	RenderMode RenderMode
 }
 
-var LoaderImages = []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}
-
 type Application struct {
 	errorCond    error
 	redrawChan   chan RedrawRequest
@@ -43,9 +40,7 @@ type Application struct {
 	dimensions   Dimensions
 	loader       *Loader
 
-	isBusy     atomic.Bool
-	isBusyChan chan struct{}
-	isBusyWg   sync.WaitGroup
+	isBusy atomic.Bool
 }
 
 func WithApplicationOptionInputHandler(handleInput func(string) string) *Option {
@@ -105,8 +100,8 @@ func New(root Widget, options ...Option) *Application {
 		sigChan:    make(chan os.Signal, 1),
 		closeChan:  make(chan struct{}, 1),
 		redrawChan: make(chan RedrawRequest, 1000),
-		loader:     NewLoader("Loading"),
 	}
+	app.loader = NewLoader(app)
 	appSingleton = app
 
 	for _, option := range options {
@@ -378,61 +373,19 @@ func (a *Application) SetDimensions(left int, top int, width int, height int) {
 	a.dimensions.Width = width
 	a.dimensions.Height = height
 
-	l := int((float64(width) / 2.) - (float64(a.loader.GetWidth()) / 2.))
-	h := int((float64(height) / 2.) - (float64(a.loader.GetHeight()) / 2.))
-	a.loader.SetDimensions(left+l, top+h, a.loader.GetWidth(), a.loader.GetHeight())
+	a.loader.SetDimensions(0, 0, width, height)
 	a.root.SetDimensions(0, 0, width, height)
 }
 
-// SetBusy sets the busy status on the application component.  If becoming busy, a thread will be started with a UI
+// ShowLoader sets the busy status on the application component.  If becoming busy, a thread will be started with a UI
 // timer to set render events, if becoming not busy, the timer will stop
-func (a *Application) SetBusy(isBusy bool, message ...string) {
-	if isBusy == true {
-		if a.isBusy.Load() {
-			panic("busy state being set on item which was already busy, this operation should have been prevented")
-		}
+func (a *Application) ShowLoader(message string) {
+	a.isBusy.Store(true)
+	a.loader.Show(message)
+}
 
-		a.isBusyChan = make(chan struct{}, 1)
-		a.isBusy.Store(true)
-
-		// Start the load timer thread
-		go func() {
-			loaderFrame := 0
-			ticker := time.NewTicker(LoaderTickInterval)
-			defer ticker.Stop()
-			for {
-				select {
-				case <-a.isBusyChan:
-					a.isBusy.Store(false)
-					a.RequestRedrawComponent(RedrawRequest{
-						Widget:     nil,
-						RenderMode: RenderModeAll,
-					})
-					return
-				case <-ticker.C:
-					// update the label and send a redraw request
-					var m string
-					if len(message) > 0 {
-						m = message[0]
-					} else {
-						m = "Loading"
-					}
-					a.loader.SetLabel(fmt.Sprintf("%s %s", LoaderImages[loaderFrame], m))
-					a.RequestRedrawComponent(RedrawRequest{
-						Widget:     a.loader,
-						RenderMode: RenderModeAll,
-					})
-					loaderFrame++
-					if loaderFrame >= len(LoaderImages) {
-						loaderFrame = 0
-					}
-				}
-			}
-		}()
-
-		return
-	}
-
-	// stop the thread
-	close(a.isBusyChan)
+// HideLoader hides the loader and allows keyboard events again
+func (a *Application) HideLoader() {
+	a.loader.Hide()
+	a.isBusy.Store(false)
 }
