@@ -12,10 +12,9 @@ var LoaderImages = []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "�
 
 type Loader struct {
 	*Box
-	Label       string
-	lock        sync.Mutex
-	isBusyChan  chan struct{}
-	application *Application
+	Label      string
+	lock       sync.Mutex
+	isBusyChan chan struct{}
 }
 
 func NewLoader() *Loader {
