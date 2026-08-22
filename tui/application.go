@@ -1,19 +1,33 @@
 package tui
 
 import (
+	"fmt"
 	"os"
 	"os/signal"
 	"slices"
 	"sync"
+	"sync/atomic"
 	"syscall"
+	"time"
 
 	"github.com/exadrift/go/tui/internal/terminal"
 	"golang.org/x/term"
 )
 
+const (
+	LoaderTickInterval = time.Millisecond * 100
+)
+
+type RedrawRequest struct {
+	Widget     Widget
+	RenderMode RenderMode
+}
+
+var LoaderImages = []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}
+
 type Application struct {
 	errorCond    error
-	redrawChan   chan Widget
+	redrawChan   chan RedrawRequest
 	inputHandler func(string) string
 	inFocus      Widget
 	ctrlCExit    bool
@@ -26,6 +40,12 @@ type Application struct {
 	wg           *sync.WaitGroup
 	root         Widget
 	keyBindings  *KeyBindings
+	dimensions   Dimensions
+	loader       *Loader
+
+	isBusy     atomic.Bool
+	isBusyChan chan struct{}
+	isBusyWg   sync.WaitGroup
 }
 
 func WithApplicationOptionInputHandler(handleInput func(string) string) *Option {
@@ -84,7 +104,8 @@ func New(root Widget, options ...Option) *Application {
 		root:       root,
 		sigChan:    make(chan os.Signal, 1),
 		closeChan:  make(chan struct{}, 1),
-		redrawChan: make(chan Widget, 1000),
+		redrawChan: make(chan RedrawRequest, 1000),
+		loader:     NewLoader("Loading"),
 	}
 	appSingleton = app
 
@@ -205,8 +226,8 @@ func (a *Application) renderFocused() {
 	a.renderWidgets(RenderModeContent, a.inFocus)
 }
 
-func (a *Application) RequestRedrawComponent(component Widget) {
-	a.redrawChan <- component
+func (a *Application) RequestRedrawComponent(req RedrawRequest) {
+	a.redrawChan <- req
 }
 
 func (a *Application) renderWidgets(renderMode RenderMode, widgets ...Widget) {
@@ -279,7 +300,7 @@ func (a *Application) Start() error {
 	if err != nil {
 		return err
 	}
-	a.root.SetDimensions(0, 0, width, height)
+	a.SetDimensions(0, 0, width, height)
 
 	a.renderAll()
 
@@ -298,11 +319,20 @@ func (a *Application) Start() error {
 			if err != nil {
 				return err
 			}
-			a.root.SetDimensions(0, 0, width, height)
+			a.SetDimensions(0, 0, width, height)
 			a.renderAll()
-		case widget := <-a.redrawChan:
-			widget.Render(RenderModeContent, a.inFocus)
+		case req := <-a.redrawChan:
+			if req.Widget == nil {
+				a.renderAll()
+			} else {
+				req.Widget.Render(req.RenderMode, a.inFocus)
+			}
 		case c := <-inputChan:
+			if a.isBusy.Load() {
+				// skip keystrokes when the application is busy
+				continue
+			}
+
 			switch c {
 			case a.keyBindings.FocusNext:
 				if a.inFocus != nil {
@@ -324,10 +354,10 @@ func (a *Application) Start() error {
 
 				if a.inputHandler != nil {
 					c = a.inputHandler(c)
-					if c == RenderFullCode {
-						a.renderAll()
-						continue
-					}
+					// if c == RenderFullCode {
+					// 	a.renderAll()
+					// 	continue
+					// }
 				}
 
 				c = a.handleInput(c)
@@ -340,4 +370,69 @@ func (a *Application) Start() error {
 			}
 		}
 	}
+}
+
+func (a *Application) SetDimensions(left int, top int, width int, height int) {
+	a.dimensions.Left = left
+	a.dimensions.Top = top
+	a.dimensions.Width = width
+	a.dimensions.Height = height
+
+	l := int((float64(width) / 2.) - (float64(a.loader.GetWidth()) / 2.))
+	h := int((float64(height) / 2.) - (float64(a.loader.GetHeight()) / 2.))
+	a.loader.SetDimensions(left+l, top+h, a.loader.GetWidth(), a.loader.GetHeight())
+	a.root.SetDimensions(0, 0, width, height)
+}
+
+// SetBusy sets the busy status on the application component.  If becoming busy, a thread will be started with a UI
+// timer to set render events, if becoming not busy, the timer will stop
+func (a *Application) SetBusy(isBusy bool, message ...string) {
+	if isBusy == true {
+		if a.isBusy.Load() {
+			panic("busy state being set on item which was already busy, this operation should have been prevented")
+		}
+
+		a.isBusyChan = make(chan struct{}, 1)
+		a.isBusy.Store(true)
+
+		// Start the load timer thread
+		go func() {
+			loaderFrame := 0
+			ticker := time.NewTicker(LoaderTickInterval)
+			defer ticker.Stop()
+			for {
+				select {
+				case <-a.isBusyChan:
+					a.isBusy.Store(false)
+					a.RequestRedrawComponent(RedrawRequest{
+						Widget:     nil,
+						RenderMode: RenderModeAll,
+					})
+					return
+				case <-ticker.C:
+					// update the label and send a redraw request
+					var m string
+					if len(message) > 0 {
+						m = message[0]
+					} else {
+						m = "Loading"
+					}
+					a.loader.SetLabel(fmt.Sprintf("%s %s", LoaderImages[loaderFrame], m))
+					a.RequestRedrawComponent(RedrawRequest{
+						Widget:     a.loader,
+						RenderMode: RenderModeAll,
+					})
+					loaderFrame++
+					if loaderFrame >= len(LoaderImages) {
+						loaderFrame = 0
+					}
+				}
+			}
+		}()
+
+		return
+	}
+
+	// stop the thread
+	close(a.isBusyChan)
 }

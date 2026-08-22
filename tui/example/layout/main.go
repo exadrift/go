@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os/exec"
+	"time"
 
 	"github.com/exadrift/go/tui"
 )
@@ -92,8 +93,13 @@ func main() {
 	}
 
 	menu1.SetSelectHandler(func(selectedIndex int, selectedItem string) {
-		menu2.SetContents(getFruitType(selectedItem)...)
-		app.SetFocus(menu2)
+		app.SetBusy(true, "Busy")
+		go func() {
+			time.Sleep(time.Second * 4)
+			menu2.SetContents(getFruitType(selectedItem)...)
+			app.SetFocus(menu2)
+			app.SetBusy(false)
+		}()
 	})
 
 	if err := app.Start(); err != nil {
