@@ -81,6 +81,21 @@ func WithApplicationOptionExitSignals(signals ...syscall.Signal) *Option {
 	}
 }
 
+type BusyModalData struct {
+	Completer func(any)
+	Label     string
+}
+
+func WithBusyModal(busyMessage string, onComplete func(any)) *Option {
+	return &Option{
+		optionType: BusyModal,
+		data: &BusyModalData{
+			Completer: onComplete,
+			Label:     busyMessage,
+		},
+	}
+}
+
 var appSingleton *Application
 var appSingletonLock = sync.Mutex{}
 
@@ -102,8 +117,8 @@ func New(root Widget, options ...Option) *Application {
 		closeChan:  make(chan struct{}, 1),
 		redrawChan: make(chan RedrawRequest, 1000),
 		safeOpChan: make(chan func(), 1000),
+		loader:     NewLoader(),
 	}
-	app.loader = NewLoader(app)
 	appSingleton = app
 
 	for _, option := range options {
