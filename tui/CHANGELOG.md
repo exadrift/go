@@ -1,3 +1,5 @@
+# v0.0.10
+- allow for asynchronous but UI input blocking loading events
 # v0.0.9
 - turn cursor back on, on application exit
 # v0.0.8
