@@ -12,16 +12,14 @@ var LoaderImages = []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "�
 
 type Loader struct {
 	*Box
-	Label       string
-	lock        sync.Mutex
-	isBusyChan  chan struct{}
-	application *Application
+	Label      string
+	lock       sync.Mutex
+	isBusyChan chan struct{}
 }
 
-func NewLoader(a *Application) *Loader {
+func NewLoader() *Loader {
 	return &Loader{
-		Box:         NewBox(),
-		application: a,
+		Box: NewBox(),
 	}
 }
 
@@ -126,7 +124,7 @@ func (l *Loader) Render(mode RenderMode, focusItem Widget) {
 // timer to set render events, if becoming not busy, the timer will stop
 func (l *Loader) Show(label string) {
 	l.isBusyChan = make(chan struct{}, 1)
-	a := l.application
+	a := appSingleton
 	a.loader.Label = label
 
 	// Start the load timer thread

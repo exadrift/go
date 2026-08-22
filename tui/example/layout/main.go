@@ -92,15 +92,19 @@ func main() {
 		log.Fatal(err)
 	}
 
-	menu1.SetSelectHandler(func(selectedIndex int, selectedItem string) {
-		app.ShowLoader("Busy")
-		go func() {
+	menu1.SetSelectHandler(
+		func(selectedIndex int, selectedItem string) any {
 			time.Sleep(time.Second * 4)
-			menu2.SetContents(getFruitType(selectedItem)...)
-			app.SetFocus(menu2)
-			app.HideLoader()
-		}()
-	})
+			return getFruitType(selectedItem)
+		},
+		tui.WithBusyModal("loading fruits...",
+			func(a any) {
+				loadedFruits := a.([]string)
+				menu2.SetContents(loadedFruits...)
+				app.SetFocus(menu2)
+			},
+		),
+	)
 
 	if err := app.Start(); err != nil {
 		log.Fatal(err)
