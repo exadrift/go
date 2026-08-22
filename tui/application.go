@@ -25,6 +25,7 @@ type RedrawRequest struct {
 type Application struct {
 	errorCond    error
 	redrawChan   chan RedrawRequest
+	safeOpChan   chan func()
 	inputHandler func(string) string
 	inFocus      Widget
 	ctrlCExit    bool
@@ -100,6 +101,7 @@ func New(root Widget, options ...Option) *Application {
 		sigChan:    make(chan os.Signal, 1),
 		closeChan:  make(chan struct{}, 1),
 		redrawChan: make(chan RedrawRequest, 1000),
+		safeOpChan: make(chan func(), 1000),
 	}
 	app.loader = NewLoader(app)
 	appSingleton = app
@@ -240,6 +242,11 @@ func (a *Application) renderWidgets(renderMode RenderMode, widgets ...Widget) {
 	}
 }
 
+// Async functions will block the UI thread, and thus should be quick operations
+func (a *Application) Async(f func()) {
+	a.safeOpChan <- f
+}
+
 // Start starts the application loop
 func (a *Application) Start() error {
 	defer a.wg.Wait()
@@ -322,6 +329,9 @@ func (a *Application) Start() error {
 			} else {
 				req.Widget.Render(req.RenderMode, a.inFocus)
 			}
+		case op := <-a.safeOpChan:
+			// performs a UI blocking op w/o clobbering internal data
+			op()
 		case c := <-inputChan:
 			if a.isBusy.Load() {
 				// skip keystrokes when the application is busy

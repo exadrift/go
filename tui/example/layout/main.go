@@ -96,9 +96,11 @@ func main() {
 		app.ShowLoader("Busy")
 		go func() {
 			time.Sleep(time.Second * 4)
-			menu2.SetContents(getFruitType(selectedItem)...)
-			app.SetFocus(menu2)
-			app.HideLoader()
+			app.Async(func() {
+				menu2.SetContents(getFruitType(selectedItem)...)
+				app.SetFocus(menu2)
+				app.HideLoader()
+			})
 		}()
 	})
 

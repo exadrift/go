@@ -1,3 +1,5 @@
+# v0.0.11
+- added notion of async operations
 # v0.0.10
 - allow for asynchronous but UI input blocking loading events
 # v0.0.9
