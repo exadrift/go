@@ -1,3 +1,5 @@
+# v0.0.12
+- expose application singleton
 # v0.0.11
 - added notion of async operations
 # v0.0.10

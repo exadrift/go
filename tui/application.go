@@ -99,6 +99,14 @@ func WithBusyModal(busyMessage string, onComplete func(any)) *Option {
 var appSingleton *Application
 var appSingletonLock = sync.Mutex{}
 
+// GetApplication returns the application singleton instance
+func GetApplication() *Application {
+	appSingletonLock.Lock()
+	defer appSingletonLock.Unlock()
+
+	return appSingleton
+}
+
 // New constructs and returns a new Application with a root widget specified.
 func New(root Widget, options ...Option) *Application {
 	appSingletonLock.Lock()
