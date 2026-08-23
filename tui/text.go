@@ -3,6 +3,7 @@ package tui
 type Text struct {
 	*Box
 	Contents string
+	style    string
 }
 
 func NewText(contents string) *Text {
