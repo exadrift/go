@@ -1,3 +1,6 @@
+# v0.0.13
+- numerous measurement bug fixes
+- added styling to box
 # v0.0.12
 - expose application singleton
 # v0.0.11

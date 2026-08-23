@@ -72,9 +72,13 @@ func main() {
 	shell.EnableBorder(true).SetTitle("terminal")
 
 	textbox := tui.NewText("hello world, this is some text that's likely to need to wrap all through the box. let's make this so long that it runs over its max length and forces the need to scroll a bit.  vertically\n\nthis is where the scrolling needs to happen.\nhopefully these newlines will accelerate the process.")
+	textbox.SetStyle("", tui.StyleBg(tui.Blue))
 	textbox.EnableBorder(true).SetTitle("text")
 
-	layout := tui.NewFlexLayout(
+	topBar := tui.NewText("example program is the best\nand this is too")
+	topBar.SetFocusable(false)
+
+	focusLayout := tui.NewFlexLayout(
 		tui.OrientationHorizontal,
 		tui.NewSegment(1, menu1),
 		tui.NewSegment(1, tui.NewFlexLayout(
@@ -83,6 +87,12 @@ func main() {
 			tui.NewSegment(1, textbox),
 		)),
 		tui.NewSegment(3, shell),
+	)
+
+	layout := tui.NewFlexLayout(
+		tui.OrientationVertical,
+		tui.NewSegment(1, topBar, tui.WithSegmentOptionMinChars(1)),
+		tui.NewSegment(1000, focusLayout),
 	)
 
 	app := tui.New(layout).SetFocus(menu1)
