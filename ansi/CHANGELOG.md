@@ -1,5 +1,5 @@
 # v0.0.3
-- add various helper extension functions
+- added generic extend function which does not affect immutability
 # v0.0.2
 - reworked into multiple sub-packages
 - added text styling system
