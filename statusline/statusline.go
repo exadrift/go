@@ -20,7 +20,6 @@ type StatusLine struct {
 	wg          sync.WaitGroup
 	options     StatusLineOptions
 	messageChan chan StatusMessage
-	killChan    chan struct{}
 }
 
 var defaultSpinner = []string{"⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷"}
@@ -42,7 +41,6 @@ func WithSpinnerStyling(style string) Option {
 func NewStatusLine(options ...Option) *StatusLine {
 	s := &StatusLine{
 		messageChan: make(chan StatusMessage, 100),
-		killChan:    make(chan struct{}, 1),
 	}
 	s.options.SpinnerSet = defaultSpinner
 
@@ -57,7 +55,7 @@ func NewStatusLine(options ...Option) *StatusLine {
 }
 
 func (s *StatusLine) Stop() {
-	close(s.killChan)
+	close(s.messageChan)
 	s.wg.Wait()
 }
 
@@ -83,10 +81,12 @@ func (s *StatusLine) runLoop() {
 
 	for {
 		select {
-		case <-s.killChan:
-			ticker.Stop()
-			return
-		case m := <-s.messageChan:
+		case m, ok := <-s.messageChan:
+			// check if the channel has been closed
+			if !ok {
+				ticker.Stop()
+				return
+			}
 			switch m.Emit {
 			case true:
 				statusMessage = ""
