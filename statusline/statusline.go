@@ -62,12 +62,12 @@ func (s *StatusLine) Stop() {
 }
 
 func (s *StatusLine) displayStatusMessage(roller string, message string) {
-	fmt.Printf("\r%s%s %s", s.options.SpinnerStyling, roller, message)
+	fmt.Printf("\r%s%s\x1b[0m %s\x1b[0m", s.options.SpinnerStyling, roller, message)
 	fmt.Printf("\x1b[K")
 }
 
 func (s *StatusLine) emitMessage(message string) {
-	fmt.Printf("\r%s", message)
+	fmt.Printf("\r%s\x1b[0m", message)
 	fmt.Printf("\x1b[K\n")
 }
 
