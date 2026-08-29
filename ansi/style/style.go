@@ -175,7 +175,7 @@ func WithMinRows(minRows int) RenderOptionFunc {
 }
 
 func (t Text) Extend(add ...any) Text {
-	var newText Text = t
+	newText := t
 	for _, item := range add {
 		switch ty := item.(type) {
 		case string:
@@ -185,9 +185,7 @@ func (t Text) Extend(add ...any) Text {
 		case Style:
 			newText = append(newText, ty)
 		case Text:
-			for _, te := range ty {
-				newText = append(newText, te)
-			}
+			newText = append(newText, ty...)
 		default:
 			panic("unknown item being added")
 		}
