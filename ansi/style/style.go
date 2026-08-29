@@ -174,6 +174,28 @@ func WithMinRows(minRows int) RenderOptionFunc {
 	}
 }
 
+func (t Text) Extend(add ...any) Text {
+	var newText Text = t
+	for _, item := range add {
+		switch ty := item.(type) {
+		case string:
+			newText = append(newText, []rune(ty))
+		case []rune:
+			newText = append(newText, ty)
+		case Style:
+			newText = append(newText, ty)
+		case Text:
+			for _, te := range ty {
+				newText = append(newText, te)
+			}
+		default:
+			panic("unknown item being added")
+		}
+	}
+
+	return newText
+}
+
 func (t Text) Render(options ...RenderOptionFunc) []string {
 	opt := &RenderOption{}
 	for _, ofunc := range options {
