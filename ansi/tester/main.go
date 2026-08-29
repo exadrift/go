@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/exadrift/go/ansi"
+	"github.com/exadrift/go/ansi/keys"
 	"golang.org/x/term"
 )
 
@@ -37,10 +37,10 @@ func main() {
 			return
 		}
 
-		ansiCode := ansi.EscapedAnsiString(string(seq))
+		ansiCode := keys.EscapedAnsiString(string(seq))
 		var humanName string
 		var keyCodeAnsi string
-		keyCombo, err := ansi.ParseAnsiCode(string(seq))
+		keyCombo, err := keys.ParseAnsiCode(string(seq))
 		if err != nil {
 			humanName = ""
 			keyCodeAnsi = ""
