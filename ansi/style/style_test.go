@@ -133,3 +133,15 @@ func TestApplyDefaultStylesUnderride(t *testing.T) {
 	// this gets inserted right before "normal text"
 	assert.Equal(t, Blue.Fg(), restyled[4].(Style))
 }
+
+func TestExtendText(t *testing.T) {
+	text := T("hello")
+	text = text.Extend(T("world"))
+	assert.Len(t, text, 2)
+}
+
+func TestExtendString(t *testing.T) {
+	text := T("hello")
+	text = text.Extend("world")
+	assert.Len(t, text, 2)
+}
