@@ -6,6 +6,8 @@ import (
 	"os"
 	"sync"
 	"time"
+
+	"golang.org/x/term"
 )
 
 type StatusLineOptions struct {
@@ -25,6 +27,7 @@ type StatusMessage struct {
 	Message  string
 	Type     MessageType
 	Callback func(resp string, err error)
+	Secret   bool
 }
 
 type StatusLine struct {
@@ -80,18 +83,33 @@ func (s *StatusLine) emitMessage(message string) {
 	fmt.Printf("\x1b[K\n")
 }
 
-func (s *StatusLine) promptMessage(message string) (string, error) {
+func (s *StatusLine) promptMessage(message string, secret bool) (string, error) {
 	scanner := bufio.NewScanner(os.Stdin)
 	fmt.Printf("\r\x1b[K\r%s ", message)
 	var line string
-	if scanner.Scan() {
-		line = scanner.Text()
-	}
-	if err := scanner.Err(); err != nil {
-		return "", fmt.Errorf("unable to read string from stdin")
+	if !secret {
+		if scanner.Scan() {
+			line = scanner.Text()
+		}
+		if err := scanner.Err(); err != nil {
+			return "", fmt.Errorf("unable to read string from stdin")
+		}
+
+		return line, nil
+
 	}
 
-	return line, nil
+	fd := int(os.Stdin.Fd())
+	if !term.IsTerminal(fd) {
+		return "", fmt.Errorf("can't prompt for input, not a TTY")
+	}
+
+	bp, err := term.ReadPassword(fd)
+	if err != nil {
+		return "", err
+	}
+
+	return string(bp), nil
 }
 
 func (s *StatusLine) runLoop() {
@@ -121,7 +139,7 @@ func (s *StatusLine) runLoop() {
 				s.displayStatusMessage(s.options.SpinnerSet[rollerIndex], statusMessage)
 			case MessageTypePrompt:
 				statusMessage = ""
-				m.Callback(s.promptMessage(m.Message))
+				m.Callback(s.promptMessage(m.Message, m.Secret))
 			}
 		case <-ticker.C:
 			if statusMessage != "" {
@@ -139,25 +157,25 @@ func (s *StatusLine) runLoop() {
 // Status will not advance the current line when updated and thus status can be updated with new
 // messages on the same line as the status changees
 func (s *StatusLine) Status(message string) {
-	s.messageChan <- StatusMessage{message, MessageTypeStatus, nil}
+	s.messageChan <- StatusMessage{message, MessageTypeStatus, nil, false}
 }
 
 // Emit emits a new message in the style of a running log.  It will clear the current line and
 // remove any status message which may be present.  Typically the use case is to emit a message
 // once it enters the log record, in order to conclude the current ongoing operation
 func (s *StatusLine) Emit(message string) {
-	s.messageChan <- StatusMessage{message, MessageTypeEmit, nil}
+	s.messageChan <- StatusMessage{message, MessageTypeEmit, nil, false}
 }
 
 // Prompt prompts the user for input and returns it
-func (s *StatusLine) Prompt(message string) string {
+func (s *StatusLine) Prompt(message string, secret bool) string {
 	var promptResp string
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	s.messageChan <- StatusMessage{message, MessageTypePrompt, func(resp string, err error) {
 		defer wg.Done()
 		promptResp = resp
-	}}
+	}, secret}
 	wg.Wait()
 
 	return promptResp
