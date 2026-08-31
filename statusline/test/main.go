@@ -22,5 +22,5 @@ func main() {
 	for i := 3; i >= 0; i-- {
 		s.Status(fmt.Sprintf("counting down to input %d", time.Second))
 	}
-	fmt.Printf("you said \"%s\"\n", s.Prompt("enter your message >"))
+	fmt.Printf("you said \"%s\"\n", s.Prompt("enter your message >", false))
 }
