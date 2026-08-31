@@ -1,7 +1,9 @@
 package statusline
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 	"sync"
 	"time"
 )
@@ -11,9 +13,18 @@ type StatusLineOptions struct {
 	SpinnerStyling string
 }
 
+type MessageType int
+
+const (
+	MessageTypeStatus MessageType = iota
+	MessageTypeEmit
+	MessageTypePrompt
+)
+
 type StatusMessage struct {
-	Message string
-	Emit    bool
+	Message  string
+	Type     MessageType
+	Callback func(resp string, err error)
 }
 
 type StatusLine struct {
@@ -69,6 +80,20 @@ func (s *StatusLine) emitMessage(message string) {
 	fmt.Printf("\x1b[K\n")
 }
 
+func (s *StatusLine) promptMessage(message string) (string, error) {
+	scanner := bufio.NewScanner(os.Stdin)
+	fmt.Printf("\r\x1b[K\r%s ", message)
+	var line string
+	if scanner.Scan() {
+		line = scanner.Text()
+	}
+	if err := scanner.Err(); err != nil {
+		return "", fmt.Errorf("unable to read string from stdin")
+	}
+
+	return line, nil
+}
+
 func (s *StatusLine) runLoop() {
 	defer s.wg.Done()
 	defer fmt.Printf("\x1b[?25h")
@@ -87,13 +112,16 @@ func (s *StatusLine) runLoop() {
 				ticker.Stop()
 				return
 			}
-			switch m.Emit {
-			case true:
+			switch m.Type {
+			case MessageTypeEmit:
 				statusMessage = ""
 				s.emitMessage(m.Message)
-			case false:
+			case MessageTypeStatus:
 				statusMessage = m.Message
 				s.displayStatusMessage(s.options.SpinnerSet[rollerIndex], statusMessage)
+			case MessageTypePrompt:
+				statusMessage = ""
+				m.Callback(s.promptMessage(m.Message))
 			}
 		case <-ticker.C:
 			if statusMessage != "" {
@@ -111,12 +139,26 @@ func (s *StatusLine) runLoop() {
 // Status will not advance the current line when updated and thus status can be updated with new
 // messages on the same line as the status changees
 func (s *StatusLine) Status(message string) {
-	s.messageChan <- StatusMessage{message, false}
+	s.messageChan <- StatusMessage{message, MessageTypeStatus, nil}
 }
 
 // Emit emits a new message in the style of a running log.  It will clear the current line and
 // remove any status message which may be present.  Typically the use case is to emit a message
 // once it enters the log record, in order to conclude the current ongoing operation
 func (s *StatusLine) Emit(message string) {
-	s.messageChan <- StatusMessage{message, true}
+	s.messageChan <- StatusMessage{message, MessageTypeEmit, nil}
+}
+
+// Prompt prompts the user for input and returns it
+func (s *StatusLine) Prompt(message string) string {
+	var promptResp string
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	s.messageChan <- StatusMessage{message, MessageTypePrompt, func(resp string, err error) {
+		defer wg.Done()
+		promptResp = resp
+	}}
+	wg.Wait()
+
+	return promptResp
 }

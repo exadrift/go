@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/exadrift/go/statusline"
@@ -18,4 +19,8 @@ func main() {
 	s.Status("confirming...")
 	time.Sleep(5 * time.Second)
 	s.Emit("it's definitely the case")
+	for i := 3; i >= 0; i-- {
+		s.Status(fmt.Sprintf("counting down to input %d", time.Second))
+	}
+	fmt.Printf("you said \"%s\"\n", s.Prompt("enter your message >"))
 }
