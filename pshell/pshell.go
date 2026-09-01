@@ -197,7 +197,7 @@ func (c *PShell) ExecuteCommands(commands string) (string, error) {
 		return "", err
 	}
 	defer func() {
-		reader.Close()
+		_ = reader.Close()
 	}()
 
 	_, err = writer.WriteString(commands)
