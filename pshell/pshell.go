@@ -94,7 +94,16 @@ func (c *PShell) StoreSudoPassword(pw string) {
 	c.sudoPassword = pw
 }
 
-func (c *PShell) execute(cmd *exec.Cmd) (string, error) {
+func (c *PShell) execute(cmd *exec.Cmd, opts ...ExecOptionFunc) (string, error) {
+	var execOption ExecOption
+	for _, opt := range opts {
+		opt(&execOption)
+	}
+
+	if len(execOption.EnvVars) > 0 {
+		cmd.Env = append(os.Environ(), execOption.EnvVars...)
+	}
+
 	var capture bytes.Buffer
 	var wg sync.WaitGroup
 
@@ -186,12 +195,18 @@ func (c *PShell) execute(cmd *exec.Cmd) (string, error) {
 	return capture.String(), nil
 }
 
-func (c *PShell) Execute(filename string) (string, error) {
-	cmd := exec.Command(c.opt.Shell, filename)
-	return c.execute(cmd)
+type ExecOption struct {
+	EnvVars []string
 }
 
-func (c *PShell) ExecuteCommands(commands string) (string, error) {
+type ExecOptionFunc func(*ExecOption)
+
+func (c *PShell) Execute(filename string, opts ...ExecOptionFunc) (string, error) {
+	cmd := exec.Command(c.opt.Shell, filename)
+	return c.execute(cmd, opts...)
+}
+
+func (c *PShell) ExecuteCommands(commands string, opts ...ExecOptionFunc) (string, error) {
 	reader, writer, err := os.Pipe()
 	if err != nil {
 		return "", err
@@ -210,7 +225,7 @@ func (c *PShell) ExecuteCommands(commands string) (string, error) {
 	cmd := exec.Command(c.opt.Shell, "-c", fmt.Sprintf("source %s", filename))
 	cmd.ExtraFiles = []*os.File{reader}
 
-	result, err := c.execute(cmd)
+	result, err := c.execute(cmd, opts...)
 	if err != nil {
 		return "", err
 	}
