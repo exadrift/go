@@ -28,7 +28,7 @@ func isRunningSudo(pid int32) (bool, int32, error) {
 			continue
 		}
 
-		if isRunningSudo == true {
+		if isRunningSudo {
 			return true, sudoPid, nil
 		}
 	}

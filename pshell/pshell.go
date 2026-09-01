@@ -102,7 +102,9 @@ func (c *PShell) execute(cmd *exec.Cmd) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("unable to start command in a pty: %w", err)
 	}
-	defer ptyFile.Close()
+	defer func() {
+		_ = ptyFile.Close()
+	}()
 
 	wg.Add(1)
 	cancelChan := make(chan struct{}, 1)
@@ -141,7 +143,7 @@ func (c *PShell) execute(cmd *exec.Cmd) (string, error) {
 						}
 						c.StoreSudoPassword(sudoPassword)
 
-						_, err = ptyFile.WriteString(fmt.Sprintf("%s\n", sudoPassword))
+						_, err = fmt.Fprintf(ptyFile, "%s\n", sudoPassword)
 						if err != nil {
 							return
 						}
@@ -194,7 +196,9 @@ func (c *PShell) ExecuteCommands(commands string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer reader.Close()
+	defer func() {
+		reader.Close()
+	}()
 
 	_, err = writer.WriteString(commands)
 	if err != nil {
