@@ -1,2 +1,4 @@
+# v0.0.2
+- apply environment variables
 # v0.0.1
 - initial create of pty shell with sudo forwarding
