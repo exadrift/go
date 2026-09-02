@@ -1,3 +1,5 @@
+# v0.0.4
+- fix env vars passing
 # v0.0.3
 - added WithEnvVars
 # v0.0.2

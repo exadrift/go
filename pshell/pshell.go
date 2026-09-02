@@ -201,9 +201,16 @@ type ExecOption struct {
 
 type ExecOptionFunc func(*ExecOption)
 
-func WithEnvVars(envVars []string) ExecOptionFunc {
+// WithEnvVars takes a mapping of key/value pairs
+func WithEnvVars(envVars map[string]string) ExecOptionFunc {
 	return func(eo *ExecOption) {
-		eo.EnvVars = envVars
+		eo.EnvVars = make([]string, len(envVars))
+		i := 0
+		for k, v := range envVars {
+			eo.EnvVars[i] = fmt.Sprintf("%s=%s", k, v)
+			i++
+		}
+
 	}
 }
 
