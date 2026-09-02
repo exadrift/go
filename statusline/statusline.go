@@ -10,6 +10,10 @@ import (
 	"golang.org/x/term"
 )
 
+const (
+	TickerTime = 100 * time.Millisecond
+)
+
 type StatusLineOptions struct {
 	SpinnerSet     []string
 	SpinnerStyling string
@@ -36,7 +40,7 @@ type StatusLine struct {
 	messageChan chan StatusMessage
 }
 
-var defaultSpinner = []string{"⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷"}
+var defaultSpinner = []string{"⣷", "⣯", "⣟", "⡿", "⢿", "⣻", "⣽", "⣾"}
 
 type Option func(opt *StatusLineOptions)
 
@@ -74,13 +78,11 @@ func (s *StatusLine) Stop() {
 }
 
 func (s *StatusLine) displayStatusMessage(roller string, message string) {
-	fmt.Printf("\r%s%s\x1b[0m %s\x1b[0m", s.options.SpinnerStyling, roller, message)
-	fmt.Printf("\x1b[K")
+	fmt.Printf("\r%s%s\x1b[0m %s\x1b[0m\x1b[K", s.options.SpinnerStyling, roller, message)
 }
 
 func (s *StatusLine) emitMessage(message string) {
-	fmt.Printf("\r%s\x1b[0m", message)
-	fmt.Printf("\x1b[K\n")
+	fmt.Printf("\r\x1b[K%s\n", message)
 }
 
 func (s *StatusLine) promptMessage(message string, secret bool) (string, error) {
@@ -119,7 +121,7 @@ func (s *StatusLine) runLoop() {
 	var statusMessage string
 	var rollerIndex int
 
-	ticker := time.NewTicker(100 * time.Millisecond)
+	ticker := time.NewTicker(TickerTime)
 
 	fmt.Printf("\x1b[?25l")
 
@@ -139,8 +141,9 @@ func (s *StatusLine) runLoop() {
 				statusMessage = m.Message
 				s.displayStatusMessage(s.options.SpinnerSet[rollerIndex], statusMessage)
 			case MessageTypePrompt:
-				statusMessage = ""
+				ticker.Stop()
 				m.Callback(s.promptMessage(m.Message, m.Secret))
+				ticker.Reset(TickerTime)
 			}
 		case <-ticker.C:
 			if statusMessage != "" {
