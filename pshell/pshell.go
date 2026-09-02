@@ -201,6 +201,12 @@ type ExecOption struct {
 
 type ExecOptionFunc func(*ExecOption)
 
+func WithEnvVars(envVars []string) ExecOptionFunc {
+	return func(eo *ExecOption) {
+		eo.EnvVars = envVars
+	}
+}
+
 func (c *PShell) Execute(filename string, opts ...ExecOptionFunc) (string, error) {
 	cmd := exec.Command(c.opt.Shell, filename)
 	return c.execute(cmd, opts...)
