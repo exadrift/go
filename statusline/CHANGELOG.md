@@ -1,3 +1,5 @@
+# v0.0.6
+- password prompt only temporarily disables status
 # v0.0.5
 - added password prompt
 # v0.0.4
