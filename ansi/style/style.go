@@ -44,6 +44,7 @@ type Style struct {
 	Ansi      string
 	StyleType StyleType
 }
+
 type Text []any
 
 var (
@@ -156,8 +157,9 @@ func T(text ...any) Text {
 }
 
 type RenderOption struct {
-	Width   int
-	MinRows int
+	Width           int
+	MinRows         int
+	StyleUnderrides []Style
 }
 
 type RenderOptionFunc func(*RenderOption)
@@ -171,6 +173,12 @@ func WithWidthConstraint(width int) RenderOptionFunc {
 func WithMinRows(minRows int) RenderOptionFunc {
 	return func(opt *RenderOption) {
 		opt.MinRows = minRows
+	}
+}
+
+func WithStyleUnderrides(styles ...Style) RenderOptionFunc {
+	return func(opt *RenderOption) {
+		opt.StyleUnderrides = styles
 	}
 }
 
@@ -204,6 +212,11 @@ func (t Text) Render(options ...RenderOptionFunc) []string {
 	var curRow strings.Builder
 	curRowLen := 0
 
+	// first apply any style underrides
+	for _, su := range opt.StyleUnderrides {
+		_, _ = curRow.WriteString(su.Ansi)
+	}
+
 	for _, token := range t {
 		switch tType := token.(type) {
 		case Style:
@@ -218,6 +231,12 @@ func (t Text) Render(options ...RenderOptionFunc) []string {
 				curRowLen = 0
 			default:
 				curRow.WriteString(tType.Ansi)
+				if tType.StyleType == StyleTypeReset {
+					// apply the style underrides again
+					for _, su := range opt.StyleUnderrides {
+						_, _ = curRow.WriteString(su.Ansi)
+					}
+				}
 			}
 		case []rune:
 			for len(tType) > 0 {
@@ -254,30 +273,6 @@ func (t Text) Render(options ...RenderOptionFunc) []string {
 	}
 
 	return rows
-}
-
-// WithDefaultStyles returns a new Text object with default styles imposed against the text.  This
-// ensures that whenever a reset is applied, the default styles are re-imposed.  Default styles will
-// be overridden only when an explicit style is applied within the text.
-func (t Text) WithDefaultStyles(styles ...Style) Text {
-	var newText Text
-	// first apply underride styles
-	for _, style := range styles {
-		newText = append(newText, style)
-	}
-	for _, part := range t {
-		newText = append(newText, part)
-		if style, ok := part.(Style); ok {
-			if style.StyleType == StyleTypeReset {
-				// re-apply the style underrides
-				for _, style := range styles {
-					newText = append(newText, style)
-				}
-			}
-		}
-	}
-
-	return newText
 }
 
 // StripAnsi will remove any ANSI sequences from the provided text
