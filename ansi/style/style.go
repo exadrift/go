@@ -157,9 +157,9 @@ func T(text ...any) Text {
 }
 
 type RenderOption struct {
-	Width           int
-	MinRows         int
-	StyleUnderrides []Style
+	Width         int
+	MinRows       int
+	DefaultStyles []Style
 }
 
 type RenderOptionFunc func(*RenderOption)
@@ -176,9 +176,9 @@ func WithMinRows(minRows int) RenderOptionFunc {
 	}
 }
 
-func WithStyleUnderrides(styles ...Style) RenderOptionFunc {
+func WithDefaultStyles(styles ...Style) RenderOptionFunc {
 	return func(opt *RenderOption) {
-		opt.StyleUnderrides = styles
+		opt.DefaultStyles = styles
 	}
 }
 
@@ -212,8 +212,8 @@ func (t Text) Render(options ...RenderOptionFunc) []string {
 	var curRow strings.Builder
 	curRowLen := 0
 
-	// first apply any style underrides
-	for _, su := range opt.StyleUnderrides {
+	// first apply any style defaults
+	for _, su := range opt.DefaultStyles {
 		_, _ = curRow.WriteString(su.Ansi)
 	}
 
@@ -232,8 +232,8 @@ func (t Text) Render(options ...RenderOptionFunc) []string {
 			default:
 				curRow.WriteString(tType.Ansi)
 				if tType.StyleType == StyleTypeReset {
-					// apply the style underrides again
-					for _, su := range opt.StyleUnderrides {
+					// apply the style defaults again
+					for _, su := range opt.DefaultStyles {
 						_, _ = curRow.WriteString(su.Ansi)
 					}
 				}

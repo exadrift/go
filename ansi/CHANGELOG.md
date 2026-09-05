@@ -1,3 +1,5 @@
+# v0.0.5
+- change naming to default styles
 # v0.0.4
 - apply style overrides in render instead of generating new object
 # v0.0.3

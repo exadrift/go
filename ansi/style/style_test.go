@@ -113,14 +113,14 @@ func TestTextRenderPadExtra(t *testing.T) {
 
 func TestRenderWithStyleUnderrides(t *testing.T) {
 	text := T("please render my text")
-	s := text.Render(WithStyleUnderrides(Blue.Fg()))
+	s := text.Render(WithDefaultStyles(Blue.Fg()))
 	assert.True(t, strings.HasPrefix(s[0], Blue.Fg().Ansi))
 
 }
 
 func TestRenderWithStyleReset(t *testing.T) {
 	text := T("please render my", StyleReset, " text")
-	s := text.Render(WithStyleUnderrides(Blue.Fg()))
+	s := text.Render(WithDefaultStyles(Blue.Fg()))
 	assert.True(t, strings.HasPrefix(s[0], Blue.Fg().Ansi))
 	assert.True(t, strings.HasSuffix(s[0], Blue.Fg().Ansi+" text"))
 }
