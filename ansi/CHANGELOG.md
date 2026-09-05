@@ -1,3 +1,5 @@
+# v0.0.4
+- apply style overrides in render instead of generating new object
 # v0.0.3
 - added generic extend function which does not affect immutability
 # v0.0.2

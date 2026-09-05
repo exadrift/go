@@ -111,27 +111,18 @@ func TestTextRenderPadExtra(t *testing.T) {
 	assert.Equal(t, StripAnsi(strs[1]), "this is a rendering ")
 }
 
-func TestApplyDefaultStyles(t *testing.T) {
-	text := T("hello world")
-	restyled := text.WithDefaultStyles(Blue.Fg())
-	assert.Len(t, restyled, 2)
+func TestRenderWithStyleUnderrides(t *testing.T) {
+	text := T("please render my text")
+	s := text.Render(WithStyleUnderrides(Blue.Fg()))
+	assert.True(t, strings.HasPrefix(s[0], Blue.Fg().Ansi))
+
 }
 
-func TestApplyDefaultStylesTwo(t *testing.T) {
-	text := T(Red.Bg(), "hello world")
-	restyled := text.WithDefaultStyles(Blue.Fg())
-	assert.Len(t, restyled, 3)
-	assert.Equal(t, Blue.Fg(), restyled[0].(Style))
-}
-
-func TestApplyDefaultStylesUnderride(t *testing.T) {
-	text := T(Red.Fg(), "hello world", StyleReset, "normal text")
-	restyled := text.WithDefaultStyles(Blue.Fg())
-	assert.Len(t, restyled, 6)
-	assert.Equal(t, Blue.Fg(), restyled[0].(Style))
-
-	// this gets inserted right before "normal text"
-	assert.Equal(t, Blue.Fg(), restyled[4].(Style))
+func TestRenderWithStyleReset(t *testing.T) {
+	text := T("please render my", StyleReset, " text")
+	s := text.Render(WithStyleUnderrides(Blue.Fg()))
+	assert.True(t, strings.HasPrefix(s[0], Blue.Fg().Ansi))
+	assert.True(t, strings.HasSuffix(s[0], Blue.Fg().Ansi+" text"))
 }
 
 func TestExtendText(t *testing.T) {
