@@ -45,6 +45,17 @@ type Style struct {
 	StyleType StyleType
 }
 
+type Styles []Style
+
+// Ansi writes the ANSI codes for an array of styles
+func (s Styles) Ansi() string {
+	b := strings.Builder{}
+	for _, st := range s {
+		b.WriteString(st.Ansi)
+	}
+	return b.String()
+}
+
 type Text []any
 
 var (

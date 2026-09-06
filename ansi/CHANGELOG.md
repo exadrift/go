@@ -1,3 +1,5 @@
+# v0.0.6
+- add style array concept
 # v0.0.5
 - change naming to default styles
 # v0.0.4
