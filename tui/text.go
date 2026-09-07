@@ -1,14 +1,16 @@
 package tui
 
+import "github.com/exadrift/go/ansi/style"
+
 type Text struct {
 	*Box
-	Contents string
+	Contents style.Text
 }
 
-func NewText(contents string) *Text {
+func NewText(contents any) *Text {
 	return &Text{
 		Box:      NewBox(),
-		Contents: contents,
+		Contents: ProcessToStyledText(contents),
 	}
 }
 
@@ -27,8 +29,9 @@ func (t *Text) CaptureInput(r string) string {
 
 func (t *Text) Render(mode RenderMode, focusItem Widget) {
 	dimensions := t.GetContentDimensions()
-	lines := WrapTextBasic(t.Contents, dimensions.Width)
+	t.Contents.Render()
 
+	lines := t.Contents.Render(style.WithWidthConstraint(dimensions.Width), style.WithDefaultStyles(t.defaultStyles...))
 	t.scrollWindow.scrollHandleEnabled = len(lines) > dimensions.Height
 
 	t.RenderWithScroll(mode, focusItem, len(lines), -1, func(index int) string {

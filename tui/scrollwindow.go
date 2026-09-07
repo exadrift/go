@@ -3,6 +3,7 @@ package tui
 import (
 	"fmt"
 
+	"github.com/exadrift/go/ansi/style"
 	"github.com/exadrift/go/tui/internal/terminal"
 )
 
@@ -10,7 +11,7 @@ type ScrollWindow struct {
 	scrollPosition      int
 	dimensions          Dimensions
 	scrollHandleEnabled bool
-	style               string
+	defaultStyles       style.Styles
 }
 
 func NewScrollWindow() *ScrollWindow {
@@ -70,6 +71,7 @@ func (sw *ScrollWindow) AdjustScrollPostition(contentRows int) {
 
 func (sw *ScrollWindow) Render(contentRows int, callback func(index int) string) {
 	dimensions := sw.dimensions
+	defStyles := sw.defaultStyles.Ansi()
 
 	if callback != nil {
 		curRow := 0
@@ -79,11 +81,10 @@ func (sw *ScrollWindow) Render(contentRows int, callback func(index int) string)
 			}
 			terminal.SetCursorPos(dimensions.Left, dimensions.Top+curRow)
 			row := callback(i)
-			if sw.style != "" {
-				fmt.Print(sw.style)
-			}
+
+			fmt.Print(defStyles)
 			fmt.Print(row)
-			if sw.style != "" {
+			if len(sw.defaultStyles) > 0 {
 				fmt.Print(StyleReset)
 			}
 			curRow++

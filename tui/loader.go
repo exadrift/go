@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/exadrift/go/ansi/style"
 	"github.com/exadrift/go/tui/internal/terminal"
 )
 
@@ -51,7 +52,7 @@ func (l *Loader) Render(mode RenderMode, focusItem Widget) {
 	terminal.SetCursorPos(left, curY)
 	fmt.Print(StyleReset)
 	fmt.Print(" ")
-	fmt.Print(StyleFg(Blue))
+	fmt.Print(style.Blue.Fg().Ansi)
 	for i := 1; i < width-1; i++ {
 		fmt.Print("█")
 	}
@@ -62,13 +63,13 @@ func (l *Loader) Render(mode RenderMode, focusItem Widget) {
 	terminal.SetCursorPos(left, curY)
 	fmt.Print(StyleReset)
 	fmt.Print(" ")
-	fmt.Print(StyleFg(Blue))
+	fmt.Print(style.Blue.Fg().Ansi)
 	fmt.Print("█")
 	fmt.Print(StyleReset)
 	for i := 2; i < width-2; i++ {
 		fmt.Print(" ")
 	}
-	fmt.Print(StyleFg(Blue))
+	fmt.Print(style.Blue.Fg().Ansi)
 	fmt.Print("█")
 	fmt.Print(StyleReset)
 	fmt.Print(" ")
@@ -77,11 +78,11 @@ func (l *Loader) Render(mode RenderMode, focusItem Widget) {
 	terminal.SetCursorPos(left, curY)
 	fmt.Print(StyleReset)
 	fmt.Print(" ")
-	fmt.Print(StyleFg(Blue))
+	fmt.Print(style.Blue.Fg().Ansi)
 	fmt.Print("█")
-	fmt.Print(StyleFg(Yellow))
+	fmt.Print(style.Yellow.Fg().Ansi)
 	fmt.Printf(" %s ", l.Label)
-	fmt.Print(StyleFg(Blue))
+	fmt.Print(style.Blue.Fg().Ansi)
 	fmt.Print("█")
 	fmt.Print(StyleReset)
 	fmt.Print(" ")
@@ -90,13 +91,13 @@ func (l *Loader) Render(mode RenderMode, focusItem Widget) {
 	terminal.SetCursorPos(left, curY)
 	fmt.Print(StyleReset)
 	fmt.Print(" ")
-	fmt.Print(StyleFg(Blue))
+	fmt.Print(style.Blue.Fg().Ansi)
 	fmt.Print("█")
 	fmt.Print(StyleReset)
 	for i := 2; i < width-2; i++ {
 		fmt.Print(" ")
 	}
-	fmt.Print(StyleFg(Blue))
+	fmt.Print(style.Blue.Fg().Ansi)
 	fmt.Print("█")
 	fmt.Print(StyleReset)
 	fmt.Print(" ")
@@ -105,7 +106,7 @@ func (l *Loader) Render(mode RenderMode, focusItem Widget) {
 	terminal.SetCursorPos(left, curY)
 	fmt.Print(StyleReset)
 	fmt.Print(" ")
-	fmt.Print(StyleFg(Blue))
+	fmt.Print(style.Blue.Fg().Ansi)
 	for i := 1; i < width-1; i++ {
 		fmt.Print("█")
 	}

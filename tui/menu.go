@@ -3,6 +3,8 @@ package tui
 import (
 	"fmt"
 	"sync"
+
+	"github.com/exadrift/go/ansi/style"
 )
 
 type Menu struct {
@@ -14,8 +16,8 @@ type Menu struct {
 	completer     func(any)
 	busyLabel     string
 
-	nonSelectedStyle string
-	selectedStyle    string
+	defaultStyles  style.Styles
+	selectedStyles style.Styles
 }
 
 func NewMenu(contents ...string) *Menu {
@@ -23,8 +25,7 @@ func NewMenu(contents ...string) *Menu {
 		Box: NewBox(),
 	}
 
-	menu.selectedStyle = StyleFgBg(White, Blue)
-
+	menu.SetSelectedStyles(style.Blue.Bg(), style.White.Fg())
 	menu.SetContents(contents...)
 
 	return menu
@@ -48,11 +49,13 @@ func (m *Menu) SetSelectHandler(h func(selectedIndex int, selectedItem string) a
 	return m
 }
 
-// SetStyle sets independent styles for the selected and non-selected states.  Each style is expected to be
-// represented as an ANSI escape sequence.  An empty string indicates no applied style.
-func (m *Menu) SetStyle(selected string, nonSelected string) *Menu {
-	m.selectedStyle = selected
-	m.nonSelectedStyle = nonSelected
+func (m *Menu) SetDefaultStyles(styles ...style.Style) *Menu {
+	m.defaultStyles = styles[:]
+	return m
+}
+
+func (m *Menu) SetSelectedStyles(styles ...style.Style) *Menu {
+	m.selectedStyles = styles[:]
 	return m
 }
 
@@ -65,7 +68,7 @@ func (m *Menu) SetContents(contents ...string) *Menu {
 
 	for i, item := range contents {
 		// sorry, menus shouldn't have any ANSI codes in them
-		m.contents[i] = StripAnsiCodes(item)
+		m.contents[i] = style.StripAnsi(item)
 	}
 	for i, val := range contents {
 		m.index[val] = i
@@ -100,9 +103,9 @@ func (m *Menu) Render(mode RenderMode, focusItem Widget) {
 		menuLabel := Pad(Constrain(m.contents[index], m.contentDimensions.Width), m.contentDimensions.Width)
 		switch index {
 		case m.selectedIndex:
-			return fmt.Sprintf("%s%s%s", m.selectedStyle, menuLabel, StyleReset)
+			return fmt.Sprintf("%s%s%s", m.selectedStyles.Ansi(), menuLabel, StyleReset)
 		default:
-			return fmt.Sprintf("%s%s%s", m.nonSelectedStyle, menuLabel, StyleReset)
+			return fmt.Sprintf("%s%s%s", m.defaultStyles.Ansi(), menuLabel, StyleReset)
 		}
 	})
 }

@@ -5,6 +5,7 @@ import (
 	"os/exec"
 	"time"
 
+	"github.com/exadrift/go/ansi/style"
 	"github.com/exadrift/go/tui"
 )
 
@@ -72,7 +73,7 @@ func main() {
 	shell.EnableBorder(true).SetTitle("terminal")
 
 	textbox := tui.NewText("hello world, this is some text that's likely to need to wrap all through the box. let's make this so long that it runs over its max length and forces the need to scroll a bit.  vertically\n\nthis is where the scrolling needs to happen.\nhopefully these newlines will accelerate the process.")
-	textbox.SetStyle("", tui.StyleBg(tui.Blue))
+	textbox.SetDefaultStyles(style.Blue.Bg())
 	textbox.EnableBorder(true).SetTitle("text")
 
 	topBar := tui.NewText("example program is the best\nand this is too")

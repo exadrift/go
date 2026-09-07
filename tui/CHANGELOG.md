@@ -1,3 +1,5 @@
+# v0.0.14
+- update to use style component for most things
 # v0.0.13
 - numerous measurement bug fixes
 - added styling to box
