@@ -56,7 +56,10 @@ func (s Styles) Ansi() string {
 	return b.String()
 }
 
-type Text []any
+type Text struct {
+	text   []any
+	length int
+}
 
 var (
 	Break = Style{"", StyleTypeLineBreak}
@@ -120,25 +123,10 @@ func FromRgb(red uint32, green uint32, blue uint32) Color {
 	return Color(red<<24 + green<<16 + blue<<8)
 }
 
-func (t Text) Len() int {
-	l := 0
-	for _, t := range t {
-		switch ty := t.(type) {
-		case []rune:
-			l += len(ty)
-		case Style:
-			continue
-		default:
-			panic("unknown type in text object")
-		}
-	}
-
-	return l
-}
-
 // Generates a styled Text object from a collection of strings and/or style cues
-func T(text ...any) Text {
-	var cat Text
+func T(text ...any) *Text {
+	length := 0
+	var cat []any
 	for _, t := range text {
 		switch ty := t.(type) {
 		case string:
@@ -149,13 +137,17 @@ func T(text ...any) Text {
 				end := indexes[1]
 
 				if start > prevStart {
-					cat = append(cat, []rune(ty[prevStart:start]))
+					fragment := []rune(ty[prevStart:start])
+					length += len(fragment)
+					cat = append(cat, fragment)
 				}
 				cat = append(cat, Break)
 				prevStart = end
 			}
 			if prevStart < len(ty) {
-				cat = append(cat, []rune(ty[prevStart:]))
+				fragment := []rune(ty[prevStart:])
+				length += len(fragment)
+				cat = append(cat, fragment)
 			}
 		case Style:
 			cat = append(cat, ty)
@@ -164,7 +156,10 @@ func T(text ...any) Text {
 		}
 	}
 
-	return cat
+	return &Text{
+		text:   cat,
+		length: length,
+	}
 }
 
 type RenderOption struct {
@@ -193,18 +188,29 @@ func WithDefaultStyles(styles ...Style) RenderOptionFunc {
 	}
 }
 
-func (t Text) Extend(add ...any) Text {
-	newText := t
+func (t *Text) Len() int {
+	return t.length
+}
+
+func (t *Text) Extend(add ...any) *Text {
+	newText := &Text{
+		text:   t.text[:],
+		length: t.length,
+	}
 	for _, item := range add {
 		switch ty := item.(type) {
 		case string:
-			newText = append(newText, []rune(ty))
+			fragment := []rune(ty)
+			newText.text = append(newText.text, fragment)
+			newText.length += len(fragment)
 		case []rune:
-			newText = append(newText, ty)
+			newText.text = append(newText.text, ty)
+			newText.length += len(ty)
 		case Style:
-			newText = append(newText, ty)
-		case Text:
-			newText = append(newText, ty...)
+			newText.text = append(newText.text, ty)
+		case *Text:
+			newText.text = append(newText.text, ty.text...)
+			newText.length += ty.length
 		default:
 			panic("unknown item being added")
 		}
@@ -213,7 +219,7 @@ func (t Text) Extend(add ...any) Text {
 	return newText
 }
 
-func (t Text) Render(options ...RenderOptionFunc) []string {
+func (t *Text) Render(options ...RenderOptionFunc) []string {
 	opt := &RenderOption{}
 	for _, ofunc := range options {
 		ofunc(opt)
@@ -228,7 +234,7 @@ func (t Text) Render(options ...RenderOptionFunc) []string {
 		_, _ = curRow.WriteString(su.Ansi)
 	}
 
-	for _, token := range t {
+	for _, token := range t.text {
 		switch tType := token.(type) {
 		case Style:
 			switch tType.StyleType {

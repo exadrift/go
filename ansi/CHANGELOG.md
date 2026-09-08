@@ -1,3 +1,5 @@
+# v0.0.7
+- moved text into an object
 # v0.0.6
 - add style array concept
 # v0.0.5
