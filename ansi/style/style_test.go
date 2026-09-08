@@ -13,8 +13,8 @@ func TestTextNewline(t *testing.T) {
 	text := T(origStr)
 	strippedText := strings.ReplaceAll(origStr, "\n", "")
 	assert.Equal(t, text.Len(), len(strippedText))
-	assert.Equal(t, 8, len(text))
-	assert.Equal(t, []rune("hi there"), text[7])
+	assert.Equal(t, 8, len(text.text))
+	assert.Equal(t, []rune("hi there"), text.text[7])
 }
 
 func TestTextNewlineBeginning(t *testing.T) {
@@ -22,8 +22,8 @@ func TestTextNewlineBeginning(t *testing.T) {
 	text := T(origStr)
 	strippedText := strings.ReplaceAll(origStr, "\n", "")
 	assert.Equal(t, text.Len(), len(strippedText))
-	assert.Equal(t, 9, len(text))
-	assert.Equal(t, Break, text[0])
+	assert.Equal(t, 9, len(text.text))
+	assert.Equal(t, Break, text.text[0])
 }
 
 func TestTextNewlineEnding(t *testing.T) {
@@ -31,8 +31,8 @@ func TestTextNewlineEnding(t *testing.T) {
 	text := T(origStr)
 	strippedText := strings.ReplaceAll(origStr, "\n", "")
 	assert.Equal(t, text.Len(), len(strippedText))
-	assert.Equal(t, 9, len(text))
-	assert.Equal(t, Break, text[8])
+	assert.Equal(t, 9, len(text.text))
+	assert.Equal(t, Break, text.text[8])
 }
 
 func TestTextRenderNoConstraints(t *testing.T) {
@@ -128,11 +128,11 @@ func TestRenderWithStyleReset(t *testing.T) {
 func TestExtendText(t *testing.T) {
 	text := T("hello")
 	text = text.Extend(T("world"))
-	assert.Len(t, text, 2)
+	assert.Len(t, text.text, 2)
 }
 
 func TestExtendString(t *testing.T) {
 	text := T("hello")
 	text = text.Extend("world")
-	assert.Len(t, text, 2)
+	assert.Len(t, text.text, 2)
 }
