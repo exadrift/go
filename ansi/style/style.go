@@ -258,6 +258,50 @@ func (t *Text) RequiresScroll(width int, height int) bool {
 	return totalRows > height
 }
 
+// Wrap takes an existing text object and wraps it into an array of text objects, taking
+// into account and removing newlines in the process.  Empty lines will result in empty
+// Text objects in the array (not null, just empty)
+func (t *Text) Wrap(width int) []*Text {
+	var rows []*Text
+	var curRow []any
+	curRowLen := 0
+
+	for _, token := range t.text {
+		switch tType := token.(type) {
+		case Style:
+			switch tType.StyleType {
+			case StyleTypeLineBreak:
+				// if the current row is empty, then we're ok to interpolate nil and just add an empty Text object
+				rows = append(rows, T(curRow...))
+				curRow = nil
+				curRowLen = 0
+			default:
+				curRow = append(curRow, tType)
+			}
+		case []rune:
+			for len(tType) > 0 {
+				if curRowLen+len(tType) <= width || width == 0 {
+					curRow = append(curRow, string(tType))
+					curRowLen += len(tType)
+					tType = nil
+				} else {
+					curRow = append(curRow, string(tType[:width-curRowLen]))
+					tType = tType[width-curRowLen:]
+					rows = append(rows, T(curRow...))
+					curRow = nil
+					curRowLen = 0
+				}
+			}
+		}
+	}
+
+	if len(curRow) > 0 {
+		rows = append(rows, T(curRow...))
+	}
+
+	return rows
+}
+
 func (t *Text) Render(options ...RenderOptionFunc) []string {
 	opt := &RenderOption{}
 	for _, ofunc := range options {

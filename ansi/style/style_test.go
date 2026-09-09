@@ -163,3 +163,21 @@ func TestRequireScrollWidthNewline(t *testing.T) {
 	reqScroll = text.RequiresScroll(5, 6)
 	assert.True(t, reqScroll)
 }
+
+func TestWrapText(t *testing.T) {
+	text := T("some ", "text needs ", "to be wrapped")
+	rows := text.Wrap(5)
+	assert.Len(t, rows, 6)
+}
+
+func TestWrapTextWithNewline(t *testing.T) {
+	text := T("some ", "text needs ", "to be wrapped\n\n")
+	rows := text.Wrap(5)
+	assert.Len(t, rows, 7)
+}
+
+func TestWrapTextWithMidNewline(t *testing.T) {
+	text := T("some ", "text needs \n", "to be wrapped\n\n")
+	rows := text.Wrap(5)
+	assert.Len(t, rows, 8)
+}
