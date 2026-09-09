@@ -151,6 +151,10 @@ func T(text ...any) *Text {
 			}
 		case Style:
 			cat = append(cat, ty)
+		case Styles:
+			for _, sty := range ty {
+				cat = append(cat, sty)
+			}
 		case *Text:
 			cat = append(cat, ty.text...)
 			length += ty.length
