@@ -1,3 +1,5 @@
+# v0.0.10
+- detect whether or not text will require scrolling
 # v0.0.9
 - compose styles directly into Text
 # v0.0.8

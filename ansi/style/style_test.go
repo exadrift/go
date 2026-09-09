@@ -136,3 +136,30 @@ func TestExtendString(t *testing.T) {
 	text = text.Extend("world")
 	assert.Len(t, text.text, 2)
 }
+
+func TestRequireScrollWidth(t *testing.T) {
+	text := T("we have some text which will")
+	reqScroll := text.RequiresScroll(5, 5)
+	assert.True(t, reqScroll)
+
+	reqScroll = text.RequiresScroll(5, 6)
+	assert.False(t, reqScroll)
+}
+
+func TestRequireScrollWidthMultiPart(t *testing.T) {
+	text := T("we have some", " text which will")
+	reqScroll := text.RequiresScroll(5, 5)
+	assert.True(t, reqScroll)
+
+	reqScroll = text.RequiresScroll(5, 6)
+	assert.False(t, reqScroll)
+}
+
+func TestRequireScrollWidthNewline(t *testing.T) {
+	text := T("we have some\n", " text which will.")
+	reqScroll := text.RequiresScroll(5, 5)
+	assert.True(t, reqScroll)
+
+	reqScroll = text.RequiresScroll(5, 6)
+	assert.True(t, reqScroll)
+}

@@ -226,6 +226,38 @@ func (t *Text) Extend(add ...any) *Text {
 	return newText
 }
 
+func (t *Text) RequiresScroll(width int, height int) bool {
+	totalRows := 0
+	leftOver := 0
+	for _, token := range t.text {
+		switch ty := token.(type) {
+		case []rune:
+			l := len(ty)
+			rows := l / width
+			leftOver += l % width
+			if leftOver > width {
+				rows += leftOver / width
+				leftOver = leftOver % width
+			}
+
+			totalRows += rows
+		case Style:
+			if ty.StyleType == StyleTypeLineBreak {
+				leftOver = 0
+				totalRows++
+			}
+		}
+		if totalRows > height {
+			return true
+		}
+	}
+	if leftOver > 0 {
+		totalRows++
+	}
+
+	return totalRows > height
+}
+
 func (t *Text) Render(options ...RenderOptionFunc) []string {
 	opt := &RenderOption{}
 	for _, ofunc := range options {
