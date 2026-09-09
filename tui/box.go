@@ -5,6 +5,7 @@ import (
 	"math"
 	"strings"
 
+	"github.com/exadrift/go/ansi/style"
 	"github.com/exadrift/go/tui/internal/terminal"
 )
 
@@ -49,7 +50,7 @@ type Box struct {
 	scrollWindow      *ScrollWindow
 	contentRows       int
 	canHaveFocus      bool
-	style             string
+	defaultStyles     style.Styles
 }
 
 func NewBox() *Box {
@@ -113,9 +114,9 @@ func (b *Box) SetDimensions(left int, top int, width int, height int) {
 	b.scrollWindow.SetDimensions(b.contentDimensions.Left, b.contentDimensions.Top, b.contentDimensions.Width, b.contentDimensions.Height)
 }
 
-func (b *Box) SetStyle(fgStyle string, bgStyle string) {
-	b.style = fgStyle + bgStyle
-	b.scrollWindow.style = b.style
+func (b *Box) SetDefaultStyles(styles ...style.Style) {
+	b.defaultStyles = styles[:]
+	b.scrollWindow.defaultStyles = styles[:]
 }
 
 func (b *Box) GetBox() *Box {
@@ -137,6 +138,7 @@ func (b *Box) RenderWithScroll(mode RenderMode, focusItem Widget, contentRows in
 }
 
 func (b *Box) Render(mode RenderMode, focusItem Widget) {
+	defStyles := b.defaultStyles.Ansi()
 	sw := b.scrollWindow
 	if mode == RenderModeAll || mode == RenderModeBorder || sw.scrollHandleEnabled {
 		dimensions := b.dimensions
@@ -186,11 +188,9 @@ func (b *Box) Render(mode RenderMode, focusItem Widget) {
 					}
 				}
 			}
-			if b.style != "" {
-				fmt.Print(b.style)
-			}
+			fmt.Print(defStyles)
 			fmt.Print(string(topString))
-			if b.style != "" {
+			if len(b.defaultStyles) > 0 {
 				fmt.Print(StyleReset)
 			}
 
@@ -204,9 +204,7 @@ func (b *Box) Render(mode RenderMode, focusItem Widget) {
 			contentRow := 0
 			for i := 1; i < dimensions.Height-1; i++ {
 				terminal.SetCursorPos(dimensions.Left, dimensions.Top+i)
-				if b.style != "" {
-					fmt.Print(b.style)
-				}
+				fmt.Print(defStyles)
 				fmt.Print(vert)
 
 				if mode == RenderModeAll {
@@ -226,20 +224,18 @@ func (b *Box) Render(mode RenderMode, focusItem Widget) {
 
 				contentRow++
 
-				if b.style != "" {
+				if len(b.defaultStyles) > 0 {
 					fmt.Print(StyleReset)
 				}
 			}
 			terminal.SetCursorPos(dimensions.Left, dimensions.Top+dimensions.Height-1)
-			if b.style != "" {
-				fmt.Print(b.style)
-			}
+			fmt.Print(defStyles)
 			fmt.Print(bottomLeft)
 			for i := 1; i < dimensions.Width-1; i++ {
 				fmt.Print(horiz)
 			}
 			fmt.Print(bottomRight)
-			if b.style != "" {
+			if len(b.defaultStyles) > 0 {
 				fmt.Print(StyleReset)
 			}
 		}

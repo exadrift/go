@@ -1,6 +1,10 @@
 package tui
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/exadrift/go/ansi/style"
+)
 
 type Dimensions struct {
 	Top    int
@@ -89,4 +93,17 @@ func Constrain(value string, length int) string {
 
 func Pad(value string, length int) string {
 	return fmt.Sprintf("%-*s", length, value)
+}
+
+func ProcessToStyledText(text any) style.Text {
+	switch t := text.(type) {
+	case style.Text:
+		return t
+	case []rune:
+		return style.T(string(t))
+	case string:
+		return style.T(t)
+	default:
+		panic(fmt.Sprintf("unknown text type to be processed into stylized text %+v", text))
+	}
 }

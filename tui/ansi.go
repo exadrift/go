@@ -1,7 +1,6 @@
 package tui
 
 import (
-	"fmt"
 	"regexp"
 	"strings"
 )
@@ -55,22 +54,6 @@ const (
 	RenderFullCode = "\x1b[RENDER"
 	StyleReset     = "\x1b[0m"
 )
-
-func StyleFg(color int) string {
-	return fmt.Sprintf("\x1b[%dm", color)
-}
-
-func StyleFgBg(fgColor int, bgColor int) string {
-	return fmt.Sprintf("\x1b[%d;%dm", fgColor, bgColor+10)
-}
-
-func StyleBg(color int) string {
-	return fmt.Sprintf("\x1b[%dm", 10+color)
-}
-
-func StripAnsiCodes(text string) string {
-	return ansiEscStripper.ReplaceAllString(text, "")
-}
 
 // SplitAtAnsiTokensAndNewline splits text into a slice of StringTokens which represent either
 // regular text, or an ANSI escape sequence
