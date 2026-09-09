@@ -1,3 +1,5 @@
+# v0.0.11
+- added text wrap feature which wraps text into multiple rows, handling (and removing) newlines
 # v0.0.10
 - detect whether or not text will require scrolling
 # v0.0.9
