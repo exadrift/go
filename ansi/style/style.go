@@ -297,8 +297,6 @@ func (t *Text) Wrap(width int) []*Text {
 
 	if len(curRow) > 0 {
 		rows = append(rows, T(curRow...))
-		curRow = nil
-		curRowLen = 0
 	}
 
 	return rows
