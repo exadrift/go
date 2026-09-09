@@ -1,3 +1,5 @@
+# v0.0.9
+- compose styles directly into Text
 # v0.0.8
 - ability to compose text from other text
 # v0.0.7
