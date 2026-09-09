@@ -1,3 +1,5 @@
+# v0.0.8
+- ability to compose text from other text
 # v0.0.7
 - moved text into an object
 # v0.0.6
