@@ -41,6 +41,11 @@ func TestTextRenderNoConstraints(t *testing.T) {
 	assert.Len(t, strs, 2)
 }
 
+func TestTextRenderMinumumOneRow(t *testing.T) {
+	text := T().Render()
+	assert.Len(t, text, 1)
+}
+
 func TestTextRenderWithSomeAnsi(t *testing.T) {
 	line1 := "hello there"
 	line2 := "this is a rendering"
