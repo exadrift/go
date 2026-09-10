@@ -372,6 +372,10 @@ func (t *Text) Render(options ...RenderOptionFunc) []string {
 		}
 	}
 
+	if len(rows) == 0 {
+		rows = append(rows, "")
+	}
+
 	return rows
 }
 
