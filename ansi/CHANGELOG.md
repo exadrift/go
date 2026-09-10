@@ -1,3 +1,5 @@
+# v0.0.13
+- add rune array support to T()
 # v0.0.12
 - render at least one row always
 # v0.0.11

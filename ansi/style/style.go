@@ -158,6 +158,9 @@ func T(text ...any) *Text {
 		case *Text:
 			cat = append(cat, ty.text...)
 			length += ty.length
+		case []rune:
+			cat = append(cat, ty)
+			length += len(ty)
 		default:
 			panic("unknown type in text")
 		}
