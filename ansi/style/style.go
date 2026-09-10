@@ -172,6 +172,7 @@ func T(text ...any) *Text {
 type RenderOption struct {
 	Width         int
 	MinRows       int
+	MaxRows       int
 	DefaultStyles []Style
 }
 
@@ -192,6 +193,12 @@ func WithMinRows(minRows int) RenderOptionFunc {
 func WithDefaultStyles(styles ...Style) RenderOptionFunc {
 	return func(opt *RenderOption) {
 		opt.DefaultStyles = styles
+	}
+}
+
+func WithMaxRows(maxRows int) RenderOptionFunc {
+	return func(opt *RenderOption) {
+		opt.MaxRows = maxRows
 	}
 }
 
@@ -322,6 +329,12 @@ func (t *Text) Render(options ...RenderOptionFunc) []string {
 		case Style:
 			switch tType.StyleType {
 			case StyleTypeLineBreak:
+				// instead of exiting, we just continue, b/c we want to capture any further style modifiers
+				// such as resets, which may occur after
+				if len(rows) >= opt.MaxRows {
+					continue
+				}
+
 				// this if block isn't executed when width is zero, which means no padding happens, this is correct
 				if curRowLen < opt.Width {
 					curRow.WriteString(strings.Repeat(" ", opt.Width-curRowLen))
@@ -340,6 +353,12 @@ func (t *Text) Render(options ...RenderOptionFunc) []string {
 			}
 		case []rune:
 			for len(tType) > 0 {
+				// instead of exiting, we just continue, b/c we want to capture any further style modifiers
+				// such as resets, which may occur after
+				if len(rows) >= opt.MaxRows {
+					continue
+				}
+
 				if curRowLen+len(tType) <= opt.Width || opt.Width == 0 {
 					curRow.WriteString(string(tType))
 					curRowLen += len(tType)
@@ -370,6 +389,10 @@ func (t *Text) Render(options ...RenderOptionFunc) []string {
 		} else {
 			rows = append(rows, "")
 		}
+	}
+
+	if len(rows) == 0 {
+		rows = append(rows, "")
 	}
 
 	return rows

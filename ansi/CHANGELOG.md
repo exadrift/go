@@ -1,3 +1,5 @@
+# v0.0.12
+- always render at least one row
 # v0.0.11
 - added text wrap feature which wraps text into multiple rows, handling (and removing) newlines
 # v0.0.10
