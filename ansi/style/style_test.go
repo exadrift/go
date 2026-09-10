@@ -35,6 +35,11 @@ func TestTextNewlineEnding(t *testing.T) {
 	assert.Equal(t, Break, text.text[8])
 }
 
+func TestTextRenderEmpty(t *testing.T) {
+	rows := T().Render()
+	assert.Len(t, rows, 1)
+}
+
 func TestTextRenderNoConstraints(t *testing.T) {
 	text := T("hello there\nthis is a rendering")
 	strs := text.Render()
