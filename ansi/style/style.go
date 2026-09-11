@@ -310,6 +310,9 @@ func (t *Text) Render(options ...RenderOptionFunc) []string {
 	for _, ofunc := range options {
 		ofunc(opt)
 	}
+	if opt.MinRows == 0 {
+		opt.MinRows = 1
+	}
 
 	var rows []string
 	var curRow strings.Builder
@@ -373,10 +376,6 @@ func (t *Text) Render(options ...RenderOptionFunc) []string {
 		} else {
 			rows = append(rows, "")
 		}
-	}
-
-	if len(rows) == 0 {
-		rows = append(rows, "")
 	}
 
 	return rows
