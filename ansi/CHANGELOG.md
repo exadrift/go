@@ -1,3 +1,5 @@
+# v0.0.16
+- add default fg and bg colors
 # v0.0.15
 - color palette support
 # v0.0.14
