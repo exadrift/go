@@ -64,11 +64,10 @@ type Text struct {
 }
 
 var (
-	Break = Style{"", StyleTypeLineBreak}
-)
-
-var (
+	Break      = Style{"", StyleTypeLineBreak}
 	StyleReset = Style{"\x1b[0m", StyleTypeReset}
+	DefaultFg  = Style{"\x1b[39m", StyleTypeFgColor}
+	DefaultBg  = Style{"\x1b[49m", StyleTypeFgColor}
 )
 
 func toRgb(color Color) (uint32, uint32, uint32) {
