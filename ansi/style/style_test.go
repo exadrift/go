@@ -186,3 +186,11 @@ func TestWrapTextWithMidNewline(t *testing.T) {
 	rows := text.Wrap(5)
 	assert.Len(t, rows, 8)
 }
+
+func TestRenderWithWidthConstraint(t *testing.T) {
+	text := T(Blue.Fg(), "this is some text making up ", StyleReset, "more stuff", Red.Fg(), " and other stuff")
+	rows := text.Render(WithWidthConstraint(100))
+	assert.Len(t, rows, 1)
+	stripped := StripAnsi(rows[0])
+	assert.Len(t, stripped, 100)
+}

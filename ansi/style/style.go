@@ -31,6 +31,8 @@ const (
 	WhiteHi
 )
 
+var color256Palette = build256ColorPalette()
+
 type StyleType int
 
 const (
@@ -384,4 +386,49 @@ func (t *Text) Render(options ...RenderOptionFunc) []string {
 // StripAnsi will remove any ANSI sequences from the provided text
 func StripAnsi(text string) string {
 	return ansiCodeRemover.ReplaceAllString(text, "")
+}
+
+func build256ColorPalette() []Color {
+	palette := make([]Color, 256)
+
+	palette[0] = FromRgb(0, 0, 0)
+	palette[1] = FromRgb(128, 0, 0)
+	palette[2] = FromRgb(0, 128, 0)
+	palette[3] = FromRgb(128, 128, 0)
+	palette[4] = FromRgb(0, 0, 128)
+	palette[5] = FromRgb(128, 0, 128)
+	palette[6] = FromRgb(0, 128, 128)
+	palette[7] = FromRgb(192, 192, 192)
+	palette[8] = FromRgb(128, 128, 128)
+	palette[9] = FromRgb(255, 0, 0)
+	palette[10] = FromRgb(0, 255, 0)
+	palette[11] = FromRgb(255, 255, 0)
+	palette[12] = FromRgb(0, 0, 255)
+	palette[13] = FromRgb(255, 0, 255)
+	palette[14] = FromRgb(0, 255, 255)
+	palette[15] = FromRgb(255, 255, 255)
+
+	// color section
+	intensity := [6]uint32{0, 95, 135, 175, 215, 255}
+	for r := range 6 {
+		for g := range 6 {
+			for b := range 6 {
+				index := 16 + (36*r + 6*g + b)
+				palette[index] = FromRgb(intensity[r], intensity[g], intensity[b])
+			}
+		}
+	}
+
+	// grayscale section
+	for i := range 24 {
+		color := uint32(10*i + 8)
+		palette[232+i] = FromRgb(color, color, color)
+	}
+
+	return palette
+}
+
+// Returns a color from the standard palette
+func GetPaletteColor(color uint8) Color {
+	return color256Palette[color]
 }

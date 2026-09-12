@@ -1,3 +1,5 @@
+# v0.0.15
+- color palette support
 # v0.0.14
 - default minimum rows to 1 when rendering
 # v0.0.13
