@@ -1,3 +1,8 @@
+# v0.0.18
+- completely redesign style system
+# v0.0.17
+- style overrides need to be reapplied on any reset condition
+- make sure even zero length rows are padded out appropriately
 # v0.0.16
 - add default fg and bg colors
 # v0.0.15

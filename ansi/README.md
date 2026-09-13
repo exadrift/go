@@ -24,26 +24,6 @@ if err != nil {
 ```
 
 ## text and styling
+What problem are we solving (use cases)
 
-```
-import (
-    "github.com/exadrift/go/ansi/style"
-)
-
-// create a piece of styled text
-text := T(Red.Fg(), "hello ", Red.Bg(), Black.Fg(), "world")
-
-// apply styling defaults to the text
-text = text.WithDefaultStyles(style.Blue.Bg(), style.Red.Fg())
-
-// render ANSI string representation of the text as rows
-rows := text.Render()
-for _, row := range rows {
-    fmt.Println(row)
-}
-
-// render can be used to constrain text to grid dimensions, both horizontally and vertically
-// below ensures that each row is exactly 10 characters wide and there are a minimum of 10 rows
-// rows are comprised of whitespace in order to pad to width and min row constraints
-rows := text.Render(WithWidthConstraint(10), WithMinRows(10))
-```
+- represent a single line of text and 
