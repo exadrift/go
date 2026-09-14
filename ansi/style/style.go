@@ -40,6 +40,25 @@ func (s Styles) Overrides(styleMap StyleMap) string {
 	return b.String()
 }
 
+func (st Styles) Remove(styleTypes ...StyleType) Styles {
+	var newStyles Styles
+	for _, s := range st {
+		filtered := false
+		for _, ty := range styleTypes {
+			if s.styleType == ty {
+				filtered = true
+				break
+			}
+		}
+
+		if !filtered {
+			newStyles = append(newStyles, s)
+		}
+	}
+
+	return newStyles
+}
+
 func (st Styles) Ansi() string {
 	var b strings.Builder
 	for _, s := range st {

@@ -1,3 +1,5 @@
+# v0.0.19
+- filter styletypes from style array
 # v0.0.18
 - completely redesign style system
 # v0.0.17
