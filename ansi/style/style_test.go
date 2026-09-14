@@ -1,196 +1,202 @@
 package style
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestTextNewline(t *testing.T) {
-	origStr := "hello world\n\n1\nthis is a new text\nhi there"
-	text := T(origStr)
-	strippedText := strings.ReplaceAll(origStr, "\n", "")
-	assert.Equal(t, text.Len(), len(strippedText))
-	assert.Equal(t, 8, len(text.text))
-	assert.Equal(t, []rune("hi there"), text.text[7])
+func TestTextLength(t *testing.T) {
+	s1 := "hello world"
+	s2 := " what's good?"
+	text := T(S(s1, Blue.Fg()), S(s2, Red.Bg()))
+	assert.Equal(t, len(s1)+len(s2), text.Len())
 }
 
-func TestTextNewlineBeginning(t *testing.T) {
-	origStr := "\nhello world\n\n1\nthis is a new text\nhi there"
-	text := T(origStr)
-	strippedText := strings.ReplaceAll(origStr, "\n", "")
-	assert.Equal(t, text.Len(), len(strippedText))
-	assert.Equal(t, 9, len(text.text))
-	assert.Equal(t, Break, text.text[0])
+func TestTextRender(t *testing.T) {
+	t1 := "hello world"
+	t2 := " what's good?"
+	s1 := Blue.Fg()
+	s2 := Red.Bg()
+
+	text := T(S(t1, s1), S(t2, s2))
+	rendered, leftover := text.Render()
+	assert.Nil(t, leftover)
+	rendExp := s1.Ansi() + t1 + ResetStyleAnsi + s2.Ansi() + t2 + ResetStyleAnsi
+	assert.Equal(t, rendExp, rendered)
 }
 
-func TestTextNewlineEnding(t *testing.T) {
-	origStr := "hello world\n\n1\nthis is a new text\nhi there\n"
-	text := T(origStr)
-	strippedText := strings.ReplaceAll(origStr, "\n", "")
-	assert.Equal(t, text.Len(), len(strippedText))
-	assert.Equal(t, 9, len(text.text))
-	assert.Equal(t, Break, text.text[8])
+func TestTextRenderStyleDefaults(t *testing.T) {
+	t1 := "hello world"
+	t2 := " what's good?"
+	s1 := Blue.Fg()
+	s2 := Red.Bg()
+
+	ds1 := Green.Fg()
+	ds2 := Green.Bg()
+
+	text := T(S(t1, s1), S(t2, s2))
+	rendered, leftover := text.Render(WithStyles(ds1, ds2))
+	assert.Nil(t, leftover)
+	rendExp := s1.Ansi() + ds2.Ansi() + t1 + ResetStyleAnsi + s2.Ansi() + ds1.Ansi() + t2 + ResetStyleAnsi
+	assert.Equal(t, rendExp, rendered)
 }
 
-func TestTextRenderNoConstraints(t *testing.T) {
-	text := T("hello there\nthis is a rendering")
-	strs := text.Render()
-	assert.Len(t, strs, 2)
+func TestTextRenderWithFixedWidthUnder(t *testing.T) {
+	t1 := "hello world"
+	t2 := " what's good?"
+	s1 := Blue.Fg()
+	s2 := Red.Bg()
+
+	ds1 := Green.Fg()
+	ds2 := Green.Bg()
+
+	width := 5
+
+	text := T(S(t1, s1), S(t2, s2))
+	rendered, leftover := text.Render(WithStyles(ds1, ds2), WithFixedWidth(width))
+	assert.NotNil(t, leftover)
+	rendExp := s1.Ansi() + ds2.Ansi() + t1[:width] + ResetStyleAnsi
+	assert.Equal(t, rendExp, rendered)
+	leftoverRend, leftover := leftover.Render(WithStyles(ds1, ds2))
+	assert.Nil(t, leftover)
+	leftOverRedExp := s1.Ansi() + ds2.Ansi() + t1[width:] + ResetStyleAnsi + s2.Ansi() + ds1.Ansi() + t2 + ResetStyleAnsi
+	assert.Equal(t, leftOverRedExp, leftoverRend)
 }
 
-func TestTextRenderMinumumOneRow(t *testing.T) {
-	text := T().Render()
-	assert.Len(t, text, 1)
+func TestTextRenderWithFixedWidthOver(t *testing.T) {
+	t1 := "hello world"
+	t2 := " what's good?"
+	s1 := Blue.Fg()
+	s2 := Red.Bg()
+
+	ds1 := Green.Fg()
+	ds2 := Green.Bg()
+
+	width := 100
+
+	text := T(S(t1, s1), S(t2, s2))
+	rendered, leftover := text.Render(WithStyles(ds1, ds2), WithFixedWidth(width))
+	assert.Nil(t, leftover)
+	rendExp := s1.Ansi() + ds2.Ansi() + t1 + ResetStyleAnsi + s2.Ansi() + ds1.Ansi() + t2 + ResetStyleAnsi + ds1.Ansi() + ds2.Ansi() + strings.Repeat(" ", width-len(t1)-len(t2)) + ResetStyleAnsi
+	assert.Equal(t, rendExp, rendered)
 }
 
-func TestTextRenderWithSomeAnsi(t *testing.T) {
-	line1 := "hello there"
-	line2 := "this is a rendering"
-	text := T(Blue.Fg(), fmt.Sprintf("%s\n%s", line1, line2))
-	strs := text.Render()
-	assert.Len(t, strs, 2)
-	assert.Len(t, StripAnsi(strs[0]), len(line1))
-	assert.Len(t, StripAnsi(strs[1]), len(line2))
+func TestTextBlock(t *testing.T) {
+	t1 := "hello world"
+	t2 := " what's good?"
+	s1 := Blue.Fg()
+	s2 := Red.Bg()
+
+	ds1 := Green.Fg()
+	ds2 := Green.Bg()
+
+	width := 10
+	height := 5
+
+	text := T(S(t1, s1), S(t2, s2))
+	tb := B(text)
+	lines := tb.Render(width, height, 0, ds1, ds2)
+	assert.Len(t, lines, height)
+
+	line1 := lines[0]
+	expLine1 := s1.Ansi() + ds2.Ansi() + "hello worl" + ResetStyleAnsi
+	assert.Equal(t, expLine1, line1)
+	line2 := lines[1]
+	expLine2 := s1.Ansi() + ds2.Ansi() + "d" + ResetStyleAnsi + s2.Ansi() + ds1.Ansi() + " what's g" + ResetStyleAnsi
+	assert.Equal(t, expLine2, line2)
+	line3 := lines[2]
+	expLine3 := s2.Ansi() + ds1.Ansi() + "ood?" + ResetStyleAnsi + ds1.Ansi() + ds2.Ansi() + "      " + ResetStyleAnsi
+	assert.Equal(t, expLine3, line3)
+	line4 := lines[3]
+	expLine4 := ds1.Ansi() + ds2.Ansi() + strings.Repeat(" ", width) + ResetStyleAnsi
+	assert.Equal(t, expLine4, line4)
+	line5 := lines[4]
+	expLine5 := ds1.Ansi() + ds2.Ansi() + strings.Repeat(" ", width) + ResetStyleAnsi
+	assert.Equal(t, expLine5, line5)
 }
 
-func TestTextRenderWithSomeAnsiAndDoubleNewline(t *testing.T) {
-	line1 := "hello there"
-	line2 := "this is a rendering"
-	text := T(Blue.Fg(), fmt.Sprintf("%s\n\n%s", line1, line2))
-	strs := text.Render()
-	assert.Len(t, strs, 3)
-	assert.Len(t, StripAnsi(strs[0]), len(line1))
-	assert.Len(t, StripAnsi(strs[2]), len(line2))
+func TestTextBlockHeightConstrained(t *testing.T) {
+	t1 := "hello world"
+	t2 := " what's good?"
+	s1 := Blue.Fg()
+	s2 := Red.Bg()
+
+	ds1 := Green.Fg()
+	ds2 := Green.Bg()
+
+	width := 10
+	height := 2
+
+	text := T(S(t1, s1), S(t2, s2))
+	tb := B(text)
+	lines := tb.Render(width, height, 0, ds1, ds2)
+	assert.Len(t, lines, height)
+
+	line1 := lines[0]
+	expLine1 := s1.Ansi() + ds2.Ansi() + "hello worl" + ResetStyleAnsi
+	assert.Equal(t, expLine1, line1)
+	line2 := lines[1]
+	expLine2 := s1.Ansi() + ds2.Ansi() + "d" + ResetStyleAnsi + s2.Ansi() + ds1.Ansi() + " what's g" + ResetStyleAnsi
+	assert.Equal(t, expLine2, line2)
 }
 
-func TestTextRenderWithSomeAnsiTrailingNewline(t *testing.T) {
-	line1 := "hello there"
-	line2 := "this is a rendering"
-	text := T(Blue.Fg(), fmt.Sprintf("%s\n%s\n", line1, line2))
-	strs := text.Render()
-	assert.Len(t, strs, 2)
-	assert.Len(t, StripAnsi(strs[0]), len(line1))
-	assert.Len(t, StripAnsi(strs[1]), len(line2))
+func TestTextBlockHeightConstrainedPositiveOffset(t *testing.T) {
+	t1 := "hello world"
+	t2 := " what's good?"
+	s1 := Blue.Fg()
+	s2 := Red.Bg()
+
+	ds1 := Green.Fg()
+	ds2 := Green.Bg()
+
+	width := 10
+	height := 5
+
+	text := T(S(t1, s1), S(t2, s2))
+	tb := B(text)
+	lines := tb.Render(width, height, 1, ds1, ds2)
+	assert.Len(t, lines, height)
+
+	line2 := lines[0]
+	expLine2 := s1.Ansi() + ds2.Ansi() + "d" + ResetStyleAnsi + s2.Ansi() + ds1.Ansi() + " what's g" + ResetStyleAnsi
+	assert.Equal(t, expLine2, line2)
+	line3 := lines[1]
+	expLine3 := s2.Ansi() + ds1.Ansi() + "ood?" + ResetStyleAnsi + ds1.Ansi() + ds2.Ansi() + "      " + ResetStyleAnsi
+	assert.Equal(t, expLine3, line3)
 }
 
-func TestTextRenderPadWidthWrap(t *testing.T) {
-	line1 := "hello there"
-	line2 := "this is a rendering"
-	text := T(Blue.Fg(), fmt.Sprintf("%s\n%s\n", line1, line2))
-	strs := text.Render(WithWidthConstraint(8))
-	assert.Len(t, strs, 5)
-	assert.Equal(t, StripAnsi(strs[0]), "hello th")
-	assert.Equal(t, StripAnsi(strs[1]), "ere     ")
-	assert.Equal(t, StripAnsi(strs[2]), "this is ")
-	assert.Equal(t, StripAnsi(strs[3]), "a render")
-	assert.Equal(t, StripAnsi(strs[4]), "ing     ")
-}
+func TestTextBlockPositiveOffset(t *testing.T) {
+	t1 := "hello world"
+	t2 := " what's good?"
+	s1 := Blue.Fg()
+	s2 := Red.Bg()
 
-func TestTextRenderPadWidthWrapMinRows(t *testing.T) {
-	line1 := "hello there"
-	line2 := "this is a rendering"
-	text := T(Blue.Fg(), fmt.Sprintf("%s\n%s\n", line1, line2))
-	strs := text.Render(WithWidthConstraint(8), WithMinRows(10))
-	assert.Len(t, strs, 10)
-	assert.Equal(t, StripAnsi(strs[0]), "hello th")
-	assert.Equal(t, StripAnsi(strs[1]), "ere     ")
-	assert.Equal(t, StripAnsi(strs[2]), "this is ")
-	assert.Equal(t, StripAnsi(strs[3]), "a render")
-	assert.Equal(t, StripAnsi(strs[4]), "ing     ")
+	ds1 := Green.Fg()
+	ds2 := Green.Bg()
 
-	for _, row := range strs {
-		assert.Len(t, StripAnsi(row), 8)
-	}
-}
+	width := 10
+	height := 5
 
-func TestTextRenderPadExtra(t *testing.T) {
-	line1 := "hello there"
-	line2 := "this is a rendering"
-	text := T(Blue.Fg(), fmt.Sprintf("%s\n%s\n", line1, line2))
-	strs := text.Render(WithWidthConstraint(20))
-	assert.Len(t, strs, 2)
-	assert.Equal(t, StripAnsi(strs[0]), "hello there         ")
-	assert.Equal(t, StripAnsi(strs[1]), "this is a rendering ")
-}
+	text := T(S(t1, s1), S(t2, s2))
+	tb := B(text)
+	lines := tb.Render(width, height, 2, ds1, ds2)
+	assert.Len(t, lines, height)
 
-func TestRenderWithStyleUnderrides(t *testing.T) {
-	text := T("please render my text")
-	s := text.Render(WithDefaultStyles(Blue.Fg()))
-	assert.True(t, strings.HasPrefix(s[0], Blue.Fg().Ansi))
-
-}
-
-func TestRenderWithStyleReset(t *testing.T) {
-	text := T("please render my", StyleReset, " text")
-	s := text.Render(WithDefaultStyles(Blue.Fg()))
-	assert.True(t, strings.HasPrefix(s[0], Blue.Fg().Ansi))
-	assert.True(t, strings.HasSuffix(s[0], Blue.Fg().Ansi+" text"))
-}
-
-func TestExtendText(t *testing.T) {
-	text := T("hello")
-	text = text.Extend(T("world"))
-	assert.Len(t, text.text, 2)
-}
-
-func TestExtendString(t *testing.T) {
-	text := T("hello")
-	text = text.Extend("world")
-	assert.Len(t, text.text, 2)
-}
-
-func TestRequireScrollWidth(t *testing.T) {
-	text := T("we have some text which will")
-	reqScroll := text.RequiresScroll(5, 5)
-	assert.True(t, reqScroll)
-
-	reqScroll = text.RequiresScroll(5, 6)
-	assert.False(t, reqScroll)
-}
-
-func TestRequireScrollWidthMultiPart(t *testing.T) {
-	text := T("we have some", " text which will")
-	reqScroll := text.RequiresScroll(5, 5)
-	assert.True(t, reqScroll)
-
-	reqScroll = text.RequiresScroll(5, 6)
-	assert.False(t, reqScroll)
-}
-
-func TestRequireScrollWidthNewline(t *testing.T) {
-	text := T("we have some\n", " text which will.")
-	reqScroll := text.RequiresScroll(5, 5)
-	assert.True(t, reqScroll)
-
-	reqScroll = text.RequiresScroll(5, 6)
-	assert.True(t, reqScroll)
-}
-
-func TestWrapText(t *testing.T) {
-	text := T("some ", "text needs ", "to be wrapped")
-	rows := text.Wrap(5)
-	assert.Len(t, rows, 6)
-}
-
-func TestWrapTextWithNewline(t *testing.T) {
-	text := T("some ", "text needs ", "to be wrapped\n\n")
-	rows := text.Wrap(5)
-	assert.Len(t, rows, 7)
-}
-
-func TestWrapTextWithMidNewline(t *testing.T) {
-	text := T("some ", "text needs \n", "to be wrapped\n\n")
-	rows := text.Wrap(5)
-	assert.Len(t, rows, 8)
-}
-
-func TestRenderWithWidthConstraint(t *testing.T) {
-	text := T(Blue.Fg(), "this is some text making up ", StyleReset, "more stuff", Red.Fg(), " and other stuff")
-	rows := text.Render(WithWidthConstraint(100))
-	assert.Len(t, rows, 1)
-	stripped := StripAnsi(rows[0])
-	assert.Len(t, stripped, 100)
+	line3 := lines[0]
+	expLine3 := s2.Ansi() + ds1.Ansi() + "ood?" + ResetStyleAnsi + ds1.Ansi() + ds2.Ansi() + "      " + ResetStyleAnsi
+	assert.Equal(t, expLine3, line3)
+	line4 := lines[1]
+	expLine4 := ds1.Ansi() + ds2.Ansi() + strings.Repeat(" ", width) + ResetStyleAnsi
+	assert.Equal(t, expLine4, line4)
+	line5 := lines[2]
+	expLine5 := ds1.Ansi() + ds2.Ansi() + strings.Repeat(" ", width) + ResetStyleAnsi
+	assert.Equal(t, expLine5, line5)
+	line6 := lines[3]
+	expLine6 := ds1.Ansi() + ds2.Ansi() + strings.Repeat(" ", width) + ResetStyleAnsi
+	assert.Equal(t, expLine6, line6)
+	line7 := lines[4]
+	expLine7 := ds1.Ansi() + ds2.Ansi() + strings.Repeat(" ", width) + ResetStyleAnsi
+	assert.Equal(t, expLine7, line7)
 }
