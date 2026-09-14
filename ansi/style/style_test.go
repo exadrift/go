@@ -200,3 +200,16 @@ func TestTextBlockPositiveOffset(t *testing.T) {
 	expLine7 := ds1.Ansi() + ds2.Ansi() + strings.Repeat(" ", width) + ResetStyleAnsi
 	assert.Equal(t, expLine7, line7)
 }
+
+func TestStyleTypeRemove(t *testing.T) {
+	styles := Styles{Black.Bg(), Green.Fg()}
+	styles = styles.Remove(StyleTypeBgColor)
+	assert.Len(t, styles, 1)
+	assert.Equal(t, styles[0].styleType, StyleTypeFgColor)
+}
+
+func TestStyleTypeRemoveBoth(t *testing.T) {
+	styles := Styles{Black.Bg(), Green.Fg()}
+	styles = styles.Remove(StyleTypeBgColor, StyleTypeFgColor)
+	assert.Len(t, styles, 0)
+}
