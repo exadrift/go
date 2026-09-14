@@ -213,3 +213,12 @@ func TestStyleTypeRemoveBoth(t *testing.T) {
 	styles = styles.Remove(StyleTypeBgColor, StyleTypeFgColor)
 	assert.Len(t, styles, 0)
 }
+
+func TestStyleTypeAdd(t *testing.T) {
+	styles := Styles{Black.Bg(), Green.Fg()}
+	styles = styles.Add(Red.Fg())
+	assert.Len(t, styles, 2)
+	assert.Equal(t, styles[0].styleType, StyleTypeBgColor)
+	assert.Equal(t, styles[1].styleType, StyleTypeFgColor)
+	assert.Equal(t, styles[1].ansi, Red.Fg().Ansi())
+}

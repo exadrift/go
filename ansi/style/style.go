@@ -59,6 +59,27 @@ func (st Styles) Remove(styleTypes ...StyleType) Styles {
 	return newStyles
 }
 
+func (st Styles) Add(styles ...*Style) Styles {
+	var newStyles Styles
+	for _, s := range st {
+		filtered := false
+		for _, sty := range styles {
+			if s.styleType == sty.styleType {
+				filtered = true
+				break
+			}
+		}
+
+		if !filtered {
+			newStyles = append(newStyles, s)
+		}
+	}
+
+	newStyles = append(newStyles, styles...)
+
+	return newStyles
+}
+
 func (st Styles) Ansi() string {
 	var b strings.Builder
 	for _, s := range st {

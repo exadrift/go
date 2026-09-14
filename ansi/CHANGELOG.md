@@ -1,3 +1,5 @@
+# v0.0.20
+- added ability to add style to a style list and remove conflicting styles
 # v0.0.19
 - filter styletypes from style array
 # v0.0.18
