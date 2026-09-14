@@ -24,6 +24,8 @@ if err != nil {
 ```
 
 ## text and styling
-What problem are we solving (use cases)
-
-- represent a single line of text and 
+Style and print line of text
+```
+text := T("this is a line of ", S("text", Blue.Fg()))
+fmt.Println(text.Render())
+```
