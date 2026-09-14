@@ -1,3 +1,5 @@
+# v0.0.21
+- count number of lines for a given render width on a TextBlock
 # v0.0.20
 - added ability to add style to a style list and remove conflicting styles
 # v0.0.19
