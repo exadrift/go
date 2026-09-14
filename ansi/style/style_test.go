@@ -222,3 +222,24 @@ func TestStyleTypeAdd(t *testing.T) {
 	assert.Equal(t, styles[1].styleType, StyleTypeFgColor)
 	assert.Equal(t, styles[1].ansi, Red.Fg().Ansi())
 }
+
+func TestCountLines(t *testing.T) {
+	width := 10
+
+	s1 := "hello world, how are you"
+	s2 := "we need to render these lines"
+	t1 := T(s1)
+	t2 := T(s2)
+	tb := B(t1, t2)
+	numLines := tb.NumLines(width)
+	numLinesT1 := len(s1) / width
+	if len(s1)%width > 0 {
+		numLinesT1++
+	}
+	numLinesT2 := len(s2) / width
+	if len(s2)%width > 0 {
+		numLinesT2++
+	}
+
+	assert.Equal(t, numLinesT1+numLinesT2, numLines)
+}

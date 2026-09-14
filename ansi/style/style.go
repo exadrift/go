@@ -272,6 +272,19 @@ func (tb TextBlock) FitsOnPage(width int, height int) bool {
 	return true
 }
 
+// NumLines returns the number of lines needed to represent itself, given the supplied width
+func (tb TextBlock) NumLines(width int) int {
+	lines := 0
+	for _, row := range tb {
+		lines += row.length / width
+		if row.length%width > 0 {
+			lines++
+		}
+	}
+
+	return lines
+}
+
 func (tb TextBlock) Render(width int, height int, yOffset int, defaultStyles ...*Style) []string {
 	lines := make([]string, height)
 	curLine := 0
