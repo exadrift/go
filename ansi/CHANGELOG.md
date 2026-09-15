@@ -1,3 +1,5 @@
+# v0.0.22
+- cache counts on TextBlock, refactor TextBlock into its own object
 # v0.0.21
 - count number of lines for a given render width on a TextBlock
 # v0.0.20
