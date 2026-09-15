@@ -1,3 +1,5 @@
+# v0.0.23
+- allow input of rune arrays
 # v0.0.22
 - cache counts on TextBlock, refactor TextBlock into its own object
 # v0.0.21
