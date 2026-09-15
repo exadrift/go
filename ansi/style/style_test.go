@@ -243,3 +243,13 @@ func TestCountLines(t *testing.T) {
 
 	assert.Equal(t, numLinesT1+numLinesT2, numLines)
 }
+
+func TestStyleBasicCount(t *testing.T) {
+	s := S("hello", Blue.Fg(), Blue.Bg())
+	assert.Len(t, s.styles, 2)
+}
+
+func TestStyleRgnCount(t *testing.T) {
+	s := S("hello", FromRgb(10, 10, 10).Fg(), FromRgb(10, 10, 10).Bg())
+	assert.Len(t, s.styles, 2)
+}
