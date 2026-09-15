@@ -273,9 +273,21 @@ func (t *Text) Len() int {
 }
 
 // B returns a TextBlock from a series of Text objects
-func B(items ...*Text) *TextBlock {
+func B(items ...any) *TextBlock {
+	textItems := make([]*Text, len(items))
+	for i, item := range items {
+		switch ty := item.(type) {
+		case string:
+			textItems[i] = T(ty)
+		case []rune:
+			textItems[i] = T(ty)
+		case *Text:
+			textItems[i] = ty
+		}
+	}
+
 	return &TextBlock{
-		text: items,
+		text: textItems,
 	}
 }
 

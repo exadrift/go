@@ -1,3 +1,5 @@
+# v0.0.24
+- fix rgb color bg vs fg specifier
 # v0.0.23
 - allow input of rune arrays
 # v0.0.22

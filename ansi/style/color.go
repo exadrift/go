@@ -41,7 +41,7 @@ func (c Color) Fg() *Style {
 	}
 
 	red, green, blue := toRgb(c)
-	return &Style{fmt.Sprintf("\x1b[38;2;%d;%d;%dm", red, green, blue), StyleTypeBgColor}
+	return &Style{fmt.Sprintf("\x1b[38;2;%d;%d;%dm", red, green, blue), StyleTypeFgColor}
 }
 
 // Bg return an ANSI background style representation of the color
