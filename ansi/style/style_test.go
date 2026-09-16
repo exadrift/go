@@ -271,3 +271,25 @@ func TestEmptyTextBlock(t *testing.T) {
 		assert.Len(t, StripAnsi(line), width)
 	}
 }
+
+func TestSingleLineTextBlock(t *testing.T) {
+	b := B("hello world")
+	width := 200
+	height := 1
+	rend := b.Render(width, height, 0)
+	assert.Len(t, rend, height)
+	for _, line := range rend {
+		assert.Len(t, StripAnsi(line), width)
+	}
+}
+
+func TestSingleLineTextBlockMultiLines(t *testing.T) {
+	b := B("hello world")
+	width := 200
+	height := 2
+	rend := b.Render(width, height, 0)
+	assert.Len(t, rend, height)
+	for _, line := range rend {
+		assert.Len(t, StripAnsi(line), width)
+	}
+}
