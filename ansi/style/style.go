@@ -272,7 +272,7 @@ func (t *Text) Len() int {
 	return t.length
 }
 
-// B returns a TextBlock from a series of Text objects
+// B returns a TextBlock from a series of inputs.  Each input represents a single line of text
 func B(items ...any) *TextBlock {
 	textItems := make([]*Text, len(items))
 	for i, item := range items {
@@ -283,6 +283,8 @@ func B(items ...any) *TextBlock {
 			textItems[i] = T(ty)
 		case *Text:
 			textItems[i] = ty
+		case *StyledText:
+			textItems[i] = T(ty)
 		}
 	}
 
@@ -359,7 +361,7 @@ Outer:
 	}
 
 	// see if more lines are required
-	if yIndex < height-1 {
+	if yIndex < height {
 		whitespace := strings.Repeat(" ", width)
 		t := T(whitespace)
 		for yIndex < height {

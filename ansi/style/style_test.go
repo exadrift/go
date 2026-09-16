@@ -1,11 +1,18 @@
 package style
 
 import (
+	"regexp"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
+
+var ansiEscape = regexp.MustCompile(`\x1b(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])`)
+
+func StripAnsi(value string) string {
+	return ansiEscape.ReplaceAllString(value, "")
+}
 
 func TestTextLength(t *testing.T) {
 	s1 := "hello world"
@@ -252,4 +259,15 @@ func TestStyleBasicCount(t *testing.T) {
 func TestStyleRgnCount(t *testing.T) {
 	s := S("hello", FromRgb(10, 10, 10).Fg(), FromRgb(10, 10, 10).Bg())
 	assert.Len(t, s.styles, 2)
+}
+
+func TestEmptyTextBlock(t *testing.T) {
+	b := B()
+	width := 200
+	height := 1
+	rend := b.Render(width, height, 0)
+	assert.Len(t, rend, height)
+	for _, line := range rend {
+		assert.Len(t, StripAnsi(line), width)
+	}
 }

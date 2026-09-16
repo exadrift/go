@@ -1,3 +1,5 @@
+# v0.0.25
+- added ability to send styled text to text block
 # v0.0.24
 - fix rgb color bg vs fg specifier
 # v0.0.23
