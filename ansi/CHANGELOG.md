@@ -1,3 +1,5 @@
+# v0.0.26
+- fixed line counting logic on textblock
 # v0.0.25
 - added ability to send styled text to text block
 # v0.0.24
