@@ -302,7 +302,7 @@ func (tb *TextBlock) FitsOnPage(width int, height int) bool {
 	lines := 0
 	for _, row := range tb.text {
 		lines += row.length / width
-		if row.length%width > 0 {
+		if row.length%width > 0 || row.length == 0 {
 			lines++
 		}
 		if lines > height {
@@ -328,7 +328,7 @@ func (tb *TextBlock) NumLines(width int) int {
 	lines := 0
 	for _, row := range tb.text {
 		lines += row.length / width
-		if row.length%width > 0 {
+		if row.length%width > 0 || row.length == 0 {
 			lines++
 		}
 	}

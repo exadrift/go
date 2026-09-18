@@ -251,6 +251,20 @@ func TestCountLines(t *testing.T) {
 	assert.Equal(t, numLinesT1+numLinesT2, numLines)
 }
 
+func TestCountLinesWithEmpties(t *testing.T) {
+	text := B("hello my name is test", T(), "i want to test a few things")
+	numLines := text.NumLines(10)
+	assert.Equal(t, 7, numLines)
+}
+
+func TestFitsWithEmpties(t *testing.T) {
+	text := B("hello my name is test", T(), "i want to test a few things")
+	fits := text.FitsOnPage(10, 6)
+	assert.False(t, fits)
+	fits = text.FitsOnPage(10, 7)
+	assert.True(t, fits)
+}
+
 func TestStyleBasicCount(t *testing.T) {
 	s := S("hello", Blue.Fg(), Blue.Bg())
 	assert.Len(t, s.styles, 2)
