@@ -51,6 +51,14 @@ func (c *Container) GetContentDimensions() *Dimensions {
 	return &c.contentDimensions
 }
 
+func (c *Container) SetBackgroundStyle(style *style.Style) {
+	c.backgroundStyle = style
+}
+
+func (c *Container) SetFocusedBackgroundStyle(style *style.Style) {
+	c.focusBackgroundStyle = style
+}
+
 func (c *Container) SetFocusable(canHaveFocus bool) *Container {
 	c.canHaveFocus = canHaveFocus
 	return c
