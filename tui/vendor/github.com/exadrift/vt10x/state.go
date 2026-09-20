@@ -235,6 +235,7 @@ func (t *State) Text(bufferSource BufferSource, rowNum int) *style.Text {
 						addStyles = append(addStyles, style.FromRgb(r, g, b).Fg())
 					}
 				}
+				prevFg = fg
 			}
 			if bgChanged {
 				if bgDefaulted {
@@ -249,6 +250,7 @@ func (t *State) Text(bufferSource BufferSource, rowNum int) *style.Text {
 						addStyles = append(addStyles, style.FromRgb(r, g, b).Bg())
 					}
 				}
+				prevBg = bg
 			}
 
 			if builder.Len() > 0 {

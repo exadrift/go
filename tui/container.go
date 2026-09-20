@@ -18,15 +18,21 @@ type Container struct {
 	dimensions           Dimensions
 	contentDimensions    Dimensions
 	scrollPosition       int
+	scrollerBackground   string
+	scrollerHandle       string
 }
 
 func NewContainer() *Container {
+	sb, _ := style.T(style.S(" ", style.FromRgb(60, 60, 60).Bg())).Render()
+	sh, _ := style.T(style.S(" ", style.FromRgb(100, 100, 100).Bg())).Render()
 	return &Container{
 		canHaveFocus:         true,
 		titleStyle:           style.Styles{style.FromRgb(50, 50, 50).Bg(), style.FromRgb(180, 180, 180).Fg()},
-		focusTitleStyle:      style.Styles{style.FromRgb(180, 180, 180).Bg(), style.FromRgb(255, 255, 255).Fg()},
-		backgroundStyle:      style.Green.Bg(),
-		focusBackgroundStyle: style.Red.Bg(),
+		focusTitleStyle:      style.Styles{style.FromRgb(180, 180, 180).Bg(), style.FromRgb(0, 0, 0).Fg()},
+		backgroundStyle:      style.FromRgb(30, 30, 30).Bg(),
+		focusBackgroundStyle: style.FromRgb(40, 40, 40).Bg(),
+		scrollerBackground:   sb,
+		scrollerHandle:       sh,
 	}
 }
 
@@ -176,13 +182,12 @@ func (c *Container) Render(contentWindow *ContentWindow, focusItem Widget) {
 			terminal.SetCursorPos(contentDimensions.Left+contentDimensions.Width-1, contentDimensions.Top+i)
 			if i >= startRow && i <= endRow {
 				// draw the cursor
-				print("█")
+				print(c.scrollerHandle)
 			} else {
 				// draw the ruler
-				print("░")
+				print(c.scrollerBackground)
 			}
 		}
 	}
-
 	print(style.ResetStyleAnsi)
 }
