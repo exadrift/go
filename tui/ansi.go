@@ -8,7 +8,6 @@ import (
 
 var ansiEscStripper = regexp.MustCompile(`\x1b\[[0-9;]*[a-zA-Z]`)
 var textWrapTokenizerNewline = regexp.MustCompile(`(\x1b\[[0-9;]*[a-zA-Z])|(\n)`)
-var spaces = strings.Repeat(" ", 10000)
 
 type TokenType int
 
