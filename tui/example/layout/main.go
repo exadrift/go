@@ -5,6 +5,7 @@ import (
 	"os/exec"
 	"time"
 
+	"github.com/exadrift/go/ansi/style"
 	"github.com/exadrift/go/tui"
 )
 
@@ -63,34 +64,59 @@ func getFruitType(fruit string) []string {
 
 func main() {
 	menu1 := tui.NewMenu(getFruits()...)
-	menu1.EnableBorder(true).SetTitle("fruit")
+	menu1.SetTitle("fruit")
 
 	menu2 := tui.NewMenu(getFruitType("apple")...)
-	menu2.EnableBorder(true).SetTitle("type")
+	menu2.SetTitle("type")
 
 	shell := tui.NewShell()
-	shell.EnableBorder(true).SetTitle("terminal")
+	shell.SetTitle("terminal")
 
-	textbox := tui.NewText("hello world, this is some text that's likely to need to wrap all through the box. let's make this so long that it runs over its max length and forces the need to scroll a bit.  vertically\n\nthis is where the scrolling needs to happen.\nhopefully these newlines will accelerate the process.")
-	textbox.SetStyle("", tui.StyleBg(tui.Blue))
-	textbox.EnableBorder(true).SetTitle("text")
+	textbox := tui.NewText(style.B(
+		"hello world, this is some text that's likely to need to wrap all through the box. let's make this so long that it runs over its max length and forces the need to scroll a bit.  vertically",
+		"",
+		"this is where the scrolling needs to happen.",
+		"hopefully these newlines will accelerate the process.",
+	))
+	textbox.SetTitle("text")
 
-	topBar := tui.NewText("example program is the best\nand this is too")
+	topBar := tui.NewText(style.B(style.T("example program is the best and this is too")))
 	topBar.SetFocusable(false)
+
+	horizTestText1 := tui.NewText(style.B("how many things?", "maybe many?", "lots of them??", "so many things in this box?"))
+	horizTestText2 := tui.NewText(style.B(style.S("how many things?", style.Yellow.Fg()), "maybe many?"))
+	horizTestText2.SetTitle("horiz")
+
+	finalHorizLayout := tui.NewFlexLayout(
+		tui.OrientationHorizontal,
+		1,
+		tui.NewSegment(1, horizTestText1),
+		tui.NewSegment(1, horizTestText2),
+	)
+
+	shellLayout := tui.NewFlexLayout(
+		tui.OrientationVertical,
+		1,
+		tui.NewSegment(3, shell),
+		tui.NewSegment(1, finalHorizLayout),
+	)
 
 	focusLayout := tui.NewFlexLayout(
 		tui.OrientationHorizontal,
+		1,
 		tui.NewSegment(1, menu1),
 		tui.NewSegment(1, tui.NewFlexLayout(
 			tui.OrientationVertical,
+			1,
 			tui.NewSegment(1, menu2),
 			tui.NewSegment(1, textbox),
 		)),
-		tui.NewSegment(3, shell),
+		tui.NewSegment(3, shellLayout),
 	)
 
 	layout := tui.NewFlexLayout(
 		tui.OrientationVertical,
+		0,
 		tui.NewSegment(1, topBar, tui.WithSegmentOptionMinChars(1)),
 		tui.NewSegment(1000, focusLayout),
 	)
