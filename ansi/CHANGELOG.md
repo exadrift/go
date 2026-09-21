@@ -1,3 +1,5 @@
+# v0.0.27
+- text can accept text as a component of creation
 # v0.0.26
 - fixed line counting logic on textblock
 # v0.0.25
