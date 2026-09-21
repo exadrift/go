@@ -122,6 +122,9 @@ func main() {
 	)
 
 	app := tui.New(layout).SetFocus(menu1)
+	app.Loader.SetBackgroundStyle(style.FromRgb(60, 60, 60).Bg())
+	app.Loader.SetBorderStyles(style.Blue.Fg())
+	app.Loader.SetSpinnerStyles(style.Green.Fg())
 
 	c := exec.Command("/bin/bash")
 	if err := shell.Start(app, c); err != nil {
