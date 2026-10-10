@@ -87,7 +87,8 @@ func (s *StatusLine) emitMessage(message string) {
 
 func (s *StatusLine) promptMessage(message string, secret bool) (string, error) {
 	scanner := bufio.NewScanner(os.Stdin)
-	fmt.Printf("\r\x1b[K\r%s ", message)
+	fmt.Printf("\r\x1b[K\r%s \x1b[?25h", message)
+	defer fmt.Printf("\x1b[?25l")
 	var line string
 	if !secret {
 		if scanner.Scan() {
@@ -111,7 +112,6 @@ func (s *StatusLine) promptMessage(message string, secret bool) (string, error) 
 		return "", err
 	}
 	fmt.Println()
-
 	return string(bp), nil
 }
 
