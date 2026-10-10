@@ -203,26 +203,35 @@ func (s *StatusLine) runLoop() {
 	}
 }
 
+func prepareMessage(message string, args ...any) string {
+	m := message
+	if len(args) > 0 {
+		m = fmt.Sprintf(message, args...)
+	}
+
+	return m
+}
+
 // Status displays a persistent status message with a roller, indicating that the status is ongoing.
 // Status will not advance the current line when updated and thus status can be updated with new
 // messages on the same line as the status changees
-func (s *StatusLine) Status(message string) {
-	s.messageChan <- StatusMessage{message, MessageTypeStatus, nil, false, false}
+func (s *StatusLine) Status(message string, args ...any) {
+	s.messageChan <- StatusMessage{prepareMessage(message, args...), MessageTypeStatus, nil, false, false}
 }
 
 // Emit emits a new message in the style of a running log.  It will clear the current line and
 // remove any status message which may be present.  Typically the use case is to emit a message
 // once it enters the log record, in order to conclude the current ongoing operation
-func (s *StatusLine) Emit(message string) {
-	s.messageChan <- StatusMessage{message, MessageTypeEmit, nil, false, false}
+func (s *StatusLine) Emit(message string, args ...any) {
+	s.messageChan <- StatusMessage{prepareMessage(message, args...), MessageTypeEmit, nil, false, false}
 }
 
 // Prompt prompts the user for input and returns it
-func (s *StatusLine) Prompt(message string, secret bool) string {
+func (s *StatusLine) Prompt(secret bool, message string, args ...any) string {
 	var promptResp string
 	wg := sync.WaitGroup{}
 	wg.Add(1)
-	s.messageChan <- StatusMessage{message, MessageTypePrompt, func(resp string, err error) {
+	s.messageChan <- StatusMessage{prepareMessage(message, args...), MessageTypePrompt, func(resp string, err error) {
 		defer wg.Done()
 		promptResp = resp
 	}, secret, false}
@@ -232,11 +241,11 @@ func (s *StatusLine) Prompt(message string, secret bool) string {
 }
 
 // Confirm confirms a value
-func (s *StatusLine) Confirm(message string, defaultValue bool) bool {
+func (s *StatusLine) Confirm(defaultValue bool, message string, args ...any) bool {
 	var promptResp bool
 	wg := sync.WaitGroup{}
 	wg.Add(1)
-	s.messageChan <- StatusMessage{message, MessageTypeConfirm, func(resp string, err error) {
+	s.messageChan <- StatusMessage{prepareMessage(message, args...), MessageTypeConfirm, func(resp string, err error) {
 		defer wg.Done()
 		if strings.ToLower(resp) == "y" {
 			promptResp = true

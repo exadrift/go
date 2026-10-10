@@ -22,14 +22,14 @@ func main() {
 	time.Sleep(2 * time.Second)
 	s.Emit("it's definitely the case")
 	for i := 3; i > 0; i-- {
-		s.Status(fmt.Sprintf("counting down to input %d", i))
+		s.Status("counting down to input %d", i)
 		time.Sleep(time.Second)
 	}
 	s.Status("about to prompt")
 	time.Sleep(time.Second)
-	message := s.Prompt("enter your message >", false)
+	message := s.Prompt(false, "enter your message >")
 	time.Sleep(2 * time.Second)
-	s.Emit(fmt.Sprintf("you said \"%s\"", message))
-	isConfirmed := s.Confirm("confirm the thing", false)
+	s.Emit("you said \"%s\"", message)
+	isConfirmed := s.Confirm(false, "confirm the thing")
 	fmt.Println(isConfirmed)
 }

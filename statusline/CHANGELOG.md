@@ -1,3 +1,5 @@
+# v0.0.9
+- added string formatting
 # v0.0.8
 - added confirm prompt
 # v0.0.7
