@@ -30,4 +30,6 @@ func main() {
 	message := s.Prompt("enter your message >", false)
 	time.Sleep(2 * time.Second)
 	s.Emit(fmt.Sprintf("you said \"%s\"", message))
+	isConfirmed := s.Confirm("confirm the thing", false)
+	fmt.Println(isConfirmed)
 }

@@ -1,3 +1,5 @@
+# v0.0.8
+- added confirm prompt
 # v0.0.7
 - fixed cursor disappear issue
 # v0.0.6

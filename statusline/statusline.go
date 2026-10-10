@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -25,13 +26,15 @@ const (
 	MessageTypeStatus MessageType = iota
 	MessageTypeEmit
 	MessageTypePrompt
+	MessageTypeConfirm
 )
 
 type StatusMessage struct {
-	Message  string
-	Type     MessageType
-	Callback func(resp string, err error)
-	Secret   bool
+	Message      string
+	Type         MessageType
+	Callback     func(resp string, err error)
+	Secret       bool
+	DefaultValue bool
 }
 
 type StatusLine struct {
@@ -115,6 +118,47 @@ func (s *StatusLine) promptMessage(message string, secret bool) (string, error) 
 	return string(bp), nil
 }
 
+func (s *StatusLine) confirmMessage(message string, defaultValue bool) (string, error) {
+	defer fmt.Printf("\x1b[?25l")
+	var line string
+	for {
+		line = ""
+		scanner := bufio.NewScanner(os.Stdin)
+		var confStr string
+		if defaultValue {
+			confStr = "(Y/n)"
+		} else {
+			confStr = "(y/N)"
+		}
+		fmt.Printf("\r\x1b[K\r%s %s: \x1b[?25h", message, confStr)
+
+		if scanner.Scan() {
+			line = scanner.Text()
+		}
+		if err := scanner.Err(); err != nil {
+			return "", fmt.Errorf("unable to read string from stdin")
+		}
+
+		lowerLine := strings.ToLower(line)
+		if lowerLine == "" {
+			if defaultValue {
+				return "y", nil
+			}
+			return "n", nil
+		}
+
+		if lowerLine == "y" || lowerLine == "yes" {
+			return "y", nil
+		}
+
+		if lowerLine == "n" || lowerLine == "no" {
+			return "n", nil
+		}
+	}
+
+	return line, nil
+}
+
 func (s *StatusLine) runLoop() {
 	defer s.wg.Done()
 	defer fmt.Printf("\x1b[?25h")
@@ -144,6 +188,10 @@ func (s *StatusLine) runLoop() {
 				ticker.Stop()
 				m.Callback(s.promptMessage(m.Message, m.Secret))
 				ticker.Reset(TickerTime)
+			case MessageTypeConfirm:
+				ticker.Stop()
+				m.Callback(s.confirmMessage(m.Message, m.DefaultValue))
+				ticker.Reset(TickerTime)
 			}
 		case <-ticker.C:
 			if statusMessage != "" {
@@ -161,14 +209,14 @@ func (s *StatusLine) runLoop() {
 // Status will not advance the current line when updated and thus status can be updated with new
 // messages on the same line as the status changees
 func (s *StatusLine) Status(message string) {
-	s.messageChan <- StatusMessage{message, MessageTypeStatus, nil, false}
+	s.messageChan <- StatusMessage{message, MessageTypeStatus, nil, false, false}
 }
 
 // Emit emits a new message in the style of a running log.  It will clear the current line and
 // remove any status message which may be present.  Typically the use case is to emit a message
 // once it enters the log record, in order to conclude the current ongoing operation
 func (s *StatusLine) Emit(message string) {
-	s.messageChan <- StatusMessage{message, MessageTypeEmit, nil, false}
+	s.messageChan <- StatusMessage{message, MessageTypeEmit, nil, false, false}
 }
 
 // Prompt prompts the user for input and returns it
@@ -179,7 +227,25 @@ func (s *StatusLine) Prompt(message string, secret bool) string {
 	s.messageChan <- StatusMessage{message, MessageTypePrompt, func(resp string, err error) {
 		defer wg.Done()
 		promptResp = resp
-	}, secret}
+	}, secret, false}
+	wg.Wait()
+
+	return promptResp
+}
+
+// Confirm confirms a value
+func (s *StatusLine) Confirm(message string, defaultValue bool) bool {
+	var promptResp bool
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	s.messageChan <- StatusMessage{message, MessageTypeConfirm, func(resp string, err error) {
+		defer wg.Done()
+		if strings.ToLower(resp) == "y" {
+			promptResp = true
+		} else {
+			promptResp = false
+		}
+	}, false, defaultValue}
 	wg.Wait()
 
 	return promptResp
