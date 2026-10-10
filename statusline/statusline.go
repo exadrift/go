@@ -155,8 +155,6 @@ func (s *StatusLine) confirmMessage(message string, defaultValue bool) (string, 
 			return "n", nil
 		}
 	}
-
-	return line, nil
 }
 
 func (s *StatusLine) runLoop() {
