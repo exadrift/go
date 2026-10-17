@@ -11,6 +11,7 @@ func main() {
 	s := statusline.NewStatusLine(statusline.WithSpinnerStyling("\x1b[92m"))
 	defer s.Stop()
 
+	s.HoldTimer()
 	s.Status("calculating things...")
 	time.Sleep(1 * time.Second)
 	s.Status("calculating...")
@@ -18,6 +19,7 @@ func main() {
 	s.Emit("1 + 1 is 2")
 	s.Status("verifying...")
 	time.Sleep(2 * time.Second)
+	s.ReleaseTimer()
 	s.Status("confirming...")
 	time.Sleep(2 * time.Second)
 	s.Emit("it's definitely the case")
